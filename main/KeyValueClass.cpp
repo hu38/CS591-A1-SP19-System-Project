@@ -1,12 +1,13 @@
 #include "KeyValueClass.h"  
 
-//put interesting/working part of class in here 
-int KeyValueClass::getData() 
+//put working part of class in here 
+int KeyValueClass::getData(int data) 
 { 
-  return data; 
+    cout << "LSM data!!!!!!!" << endl;
+    return data; 
 } 
 
-void KeyValueClass::setData(int input) 
-{ 
-  data = input; 
-}
+// void KeyValueClass::setData(int input) 
+// { 
+//   data = input; 
+// }

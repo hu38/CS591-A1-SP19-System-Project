@@ -8,6 +8,7 @@ class LevelClass {
     int sortedBufferClass[BUFFER_SIZE];
     char bufferLocation;
     int currentSize;
+    int currentLevel;
 };
 
 
