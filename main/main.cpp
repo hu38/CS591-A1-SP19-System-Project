@@ -1,12 +1,12 @@
 #include<iostream>
-#include "LSM.h"
-#include "KeyValueClass.h"
+#include "LSM.cpp"
+#include "KeyValueClass.cpp"
 using namespace std;
 
 int main() {
     LSM lsm;
     lsm.print_LSM();
     KeyValueClass kv;
-    kv.getData(3);
+    kv.getData();
     return 0;
 }

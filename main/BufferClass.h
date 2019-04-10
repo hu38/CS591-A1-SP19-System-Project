@@ -4,15 +4,9 @@ using namespace std;
 
 const int BUFFER_SIZE = 4;
 class BufferClass {
-    KeyValueClass keyValuePairs[BUFFER_SIZE];
+    KeyValueClass keyValuePairs[BUFFER_SIZE]; // combine keyvalueclass and bufferclass
     int currentSize;
     int keyRange[2];
     time_t lastTimeStamp;
 };
-
-int main() 
-{
-    
-    cout << "This is a key value class";
-    return 0;
-}
+ // create file in the work folder and access via file pointer

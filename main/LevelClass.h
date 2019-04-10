@@ -10,9 +10,4 @@ class LevelClass {
     int currentSize;
     int currentLevel;
 };
-
-
-int main() {
-    cout << "This is a key value class";
-    return 0;
-}
+ 

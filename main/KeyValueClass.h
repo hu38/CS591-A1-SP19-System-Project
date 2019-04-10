@@ -6,12 +6,12 @@ using namespace std;
 
 class KeyValueClass {
     public:
-        int key;
-        int value[3];
+        string key;
+        string value; // combine them together: use struct
         time_t timeStamp;
         string operation;
-        int getData(int data);
-        // void setData();
+        int getData();
+        void setData(string key, string value);
 };
 
 #endif
