@@ -1,4 +1,4 @@
-void LevelClass::sortMerge(LevelClass data) {
+void LevelClass::sortMerge() {
     // omit details
     return(MergedSortedLevelClass)
 }
