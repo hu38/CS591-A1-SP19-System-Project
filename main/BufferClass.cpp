@@ -6,7 +6,7 @@ int BufferClass::getCurrentSize() {
     return(currentSize);
 }
 
-string BufferClass::getData(string key) 
+string BufferClass::getData(int key) 
 { 
     for (int i=0; i < BUFFER_SIZE ; i++) {
         if (keyValueArray[i].key == key) {
@@ -19,33 +19,50 @@ string BufferClass::getData(string key)
 void BufferClass::setData(int key, string value) {   
 
     if (currentSize != BUFFER_SIZE) {
-        keyValueArray[currentSize++] = (KeyValuePair) {key, value};
+        keyValueArray[currentSize] = (KeyValuePair) {key, value};
         time_t currentTime = time(NULL); 
         lastUpdatedTime = ctime(&currentTime);
         if (keyRange[1] < key) keyRange[1] = key;
         if (keyRange[0] > key) keyRange[0] = key;
+        currentSize = currentSize + 1;
     } 
-    // else if (currentSize == 0 or currentSize == BUFFER_SIZE-1) {
-        
+    else if (currentSize == 0) {
+        cout << "hjere" << endl;
+        std::ofstream bufferFile ("buffer-data.txt");
+        bufferFile << "" << std::endl;
+        bufferFile.close();
+    }
+    // else if (currentSize == BUFFER_SIZE-1) {
+    //     // flush()
     // }
     return;
 }
 
-void BufferClass::restoreDefault() {
+void BufferClass::printBC() {
+    cout << "key  |  value" << endl;
     for (int i=0; i < BUFFER_SIZE ; i++) {
-        KeyValueArray[i] = *cur;
-
-        // keyValueArray[i].key = null;
-        // keyValueArray[i].value = null;
+        cout << std::to_string(keyValueArray[i].key) + "\t" + keyValueArray[i].value << endl;
     }
-}
-/*BufferClass BufferClass::sort(BufferClass data) {
-    // sort based on key of operations
-    SortedBufferClass = library.sort(data) // std::sort() is a sort library
-    return(SortedBufferClass)
+    return;
 }
 
-void BufferClass::flush(BufferClass data, LevelClass level) {
+bool sorter(KeyValuePair lhs, KeyValuePair rhs) { return lhs.key < rhs.key; }
+
+void BufferClass::sort() {
+    std::sort(keyValueArray, keyValueArray + BUFFER_SIZE, sorter);
+}
+
+
+// void BufferClass::restoreDefault() {
+//     for (int i=0; i < BUFFER_SIZE ; i++) {
+        
+
+//         // keyValueArray[i].key = null;
+//         // keyValueArray[i].value = null;
+//     }
+// }
+/*
+void BufferClass::flush(LevelClass level) {
     level.insertBuffer(data);
     data.KeyValueParis = {};
     data.currentSize = 0;
@@ -53,16 +70,4 @@ void BufferClass::flush(BufferClass data, LevelClass level) {
     data.time_t = null;
     data.save()
 }
-
-void BufferClass::append(KeyValueClass data, BufferClass bc) {
-    current = bc.getCurrentSize();
-    bc.keyValuePairs[current] = data;
-    bc.currentSize ++;
-}
 */
-
-
-// void BufferClass::printBC() {
-//     cout << "AHOI" << endl;
-//     return;
-// }

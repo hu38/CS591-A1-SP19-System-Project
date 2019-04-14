@@ -7,6 +7,8 @@
 #include <fstream> 
 #include <chrono>
 #include <ctime>
+#include <algorithm>
+// #include <json.h>
 using namespace std;
 
 
@@ -20,20 +22,18 @@ struct KeyValuePair
 
 class BufferClass {
 	public:
-        KeyValuePair keyValueArray[BUFFER_SIZE]; // combine keyvalueclass and bufferclass
+        KeyValuePair keyValueArray[BUFFER_SIZE]; // ensure key and value share a relationship
 	    int currentSize;
-	    string keyRange[2];
+	    int keyRange[2];
 	    string lastUpdatedTime;
 
         int getCurrentSize();
         void setData(int key, string value);
         string getData(int key);
-        void restoreDefault();
-	    //BufferClass sort(BufferClass data);
-	    //void flush(BufferClass data, LevelClass level);
-	    //void append(KeyValueClass data, BufferClass bc);
+        // void restoreDefault();
+	    void sort();
+	    //void flush(LevelClass level);
 	    
-	    // void printBC();
-        // create file in the work folder and access via file pointer
+	    void printBC();
 };
 #endif
