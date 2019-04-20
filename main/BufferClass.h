@@ -24,15 +24,16 @@ class BufferClass {
 	public:
         KeyValuePair keyValueArray[BUFFER_SIZE]; // ensure key and value share a relationship
 	    int currentSize;
-	    int keyRange[2];
-	    string lastUpdatedTime;
+	    // int keyRange[2]; wait for Fence Pointer
+	    // string lastUpdatedTime;
 
         int getCurrentSize();
-        void setData(int key, string value);
+        void insert(int key, string value);
         string getData(int key);
-        // void restoreDefault();
-	    void sort();
-	    //void flush(LevelClass level);
+        void update(int key, string value);
+        void deleteData(int key);
+	    void sortBC();
+	    void flush(LevelClass level);
 	    
 	    void printBC();
 };

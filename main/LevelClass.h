@@ -1,13 +1,12 @@
 #include <iostream>
+#include <BufferClass.h>
 using namespace std;
 
 const int BUFFER_SIZE = 4;
-const int MAX_SIZE = 2  ** BUFFER_SIZE;
+// const int MAX_SIZE = 2  ** 4;
 
 class LevelClass {
-    int sortedBufferClass[BUFFER_SIZE];
-    BufferClass bf[MAX_SIZE]
-    char bufferLocation;
+    char bufferLocation[BUFFER_SIZE];
     int currentSize;
     int currentLevel;
 };

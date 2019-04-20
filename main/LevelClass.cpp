@@ -4,7 +4,7 @@
 // Append: called from a BufferClass object, adds a keyValue object to end of array
 
 void LevelClass::sortMerge()
-{
+{ 
 
 	BufferClass answer = new BufferClass()
     int i = 0, j = 0, k = 0;

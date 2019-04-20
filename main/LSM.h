@@ -8,6 +8,7 @@ class LSM {
         int lsm_tree[5];
         void print_LSM();
     // LevelClass levels[LEVELS];
+        string get_value(int key);
 };
 
 #endif

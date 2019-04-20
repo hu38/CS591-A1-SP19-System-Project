@@ -1,5 +1,5 @@
 #include "BufferClass.h"
-
+#include "LevelClass.h"
 using namespace std;
 
 int BufferClass::getCurrentSize() {
@@ -16,25 +16,24 @@ string BufferClass::getData(int key)
     return "Not Found";
 } 
 
-void BufferClass::setData(int key, string value) {   
-
+void BufferClass::insert(int key, string value) {   
     if (currentSize != BUFFER_SIZE) {
+        // TODO: binary search to insert
         keyValueArray[currentSize] = (KeyValuePair) {key, value};
-        time_t currentTime = time(NULL); 
-        lastUpdatedTime = ctime(&currentTime);
-        if (keyRange[1] < key) keyRange[1] = key;
-        if (keyRange[0] > key) keyRange[0] = key;
+        // time_t currentTime = time(NULL); 
+        // lastUpdatedTime = ctime(&currentTime);
+        // if (keyRange[1] < key) keyRange[1] = key;
+        // if (keyRange[0] > key) keyRange[0] = key;
         currentSize = currentSize + 1;
     } 
+    else if (currentSize == BUFFER_SIZE-1) {
+        // check duplicates -> if no dup, we flush, else remove and insert
+    }
     else if (currentSize == 0) {
-        cout << "hjere" << endl;
         std::ofstream bufferFile ("buffer-data.txt");
         bufferFile << "" << std::endl;
         bufferFile.close();
     }
-    // else if (currentSize == BUFFER_SIZE-1) {
-    //     // flush()
-    // }
     return;
 }
 
@@ -48,26 +47,27 @@ void BufferClass::printBC() {
 
 bool sorter(KeyValuePair lhs, KeyValuePair rhs) { return lhs.key < rhs.key; }
 
-void BufferClass::sort() {
+void BufferClass::sortBC() {
     std::sort(keyValueArray, keyValueArray + BUFFER_SIZE, sorter);
-}
+}  
 
 
-// void BufferClass::restoreDefault() {
-//     for (int i=0; i < BUFFER_SIZE ; i++) {
-        
-
-//         // keyValueArray[i].key = null;
-//         // keyValueArray[i].value = null;
-//     }
-// }
-/*
 void BufferClass::flush(LevelClass level) {
-    level.insertBuffer(data);
-    data.KeyValueParis = {};
-    data.currentSize = 0;
-    data.keyRange = {};
-    data.time_t = null;
-    data.save()
-}
+    //TODO: create file and store pointer of the file to pass to flush(). 
+    //tiering and leveling
+    // for each file, store a pointer and the file header stores the matadata including pointers to the next file
+    // log file for all the level, can be LSM class
+/*  open a new ssh file
+    - pass buffer array in
+    - append keyValueArray, file pointer, key range to levelArray
+    close the ssh file
+    clear buffer-data.txt
 */
+    // f.write()
+    // level.insertBuffer(data);
+    // data.KeyValueParis = {};
+    // data.currentSize = 0;
+    // data.keyRange = {};
+    // data.time_t = null;
+    // data.save()
+}

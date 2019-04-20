@@ -9,11 +9,12 @@ int main() {
 	BufferClass BC;
 	BC.currentSize = 0;
 	// int x = BC.getCurrentSize();
-    BC.setData(3, "3");
-    BC.setData(1, "1");
-    BC.setData(2, "2");
-    BC.setData(4, "4");
-    BC.sort();
+    BC.insert(3, "3");
+    BC.insert(2, "9000");
+    BC.insert(1, "1");
+    BC.insert(2, "2");
+    BC.insert(4, "4");
+    BC.sortBC();
     BC.printBC();
     
     
