@@ -1,12 +1,19 @@
+#ifndef LevelClass_H
+#define LevelClass_H
+
 #include <iostream>
-#include <BufferClass.h>
+#include "BufferClass.h"
+
 using namespace std;
 
-const int BUFFER_SIZE = 4;
+const int SIZE_RATIO = 4;
 // const int MAX_SIZE = 2  ** 4;
 
 class LevelClass {
-    char bufferLocation[BUFFER_SIZE];
-    int currentSize;
-    int currentLevel;
+    public:
+        string bufferLocation[SIZE_RATIO];
+        int currentSize;
+        int currentLevel;
 };
+
+#endif

@@ -8,11 +8,10 @@
 #include <chrono>
 #include <ctime>
 #include <algorithm>
-// #include <json.h>
+#include "LevelClass.h"
 using namespace std;
 
-
-const int BUFFER_SIZE = 4;
+const int BUFFER_SIZE = 5;
 
 struct KeyValuePair
 {
@@ -33,7 +32,7 @@ class BufferClass {
         void update(int key, string value);
         void deleteData(int key);
 	    void sortBC();
-	    void flush(LevelClass level);
+	    void flush();
 	    
 	    void printBC();
 };

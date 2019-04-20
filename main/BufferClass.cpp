@@ -1,5 +1,4 @@
 #include "BufferClass.h"
-#include "LevelClass.h"
 using namespace std;
 
 int BufferClass::getCurrentSize() {
@@ -16,25 +15,38 @@ string BufferClass::getData(int key)
     return "Not Found";
 } 
 
-void BufferClass::insert(int key, string value) {   
-    if (currentSize != BUFFER_SIZE) {
-        // TODO: binary search to insert
-        keyValueArray[currentSize] = (KeyValuePair) {key, value};
-        // time_t currentTime = time(NULL); 
-        // lastUpdatedTime = ctime(&currentTime);
-        // if (keyRange[1] < key) keyRange[1] = key;
-        // if (keyRange[0] > key) keyRange[0] = key;
-        currentSize = currentSize + 1;
-    } 
-    else if (currentSize == BUFFER_SIZE-1) {
-        // check duplicates -> if no dup, we flush, else remove and insert
+void BufferClass::insert(int key, string value) { 
+    if (currentSize == 0){
+         keyValueArray[0] = (KeyValuePair) {key, value};
+         currentSize++;
     }
-    else if (currentSize == 0) {
-        std::ofstream bufferFile ("buffer-data.txt");
-        bufferFile << "" << std::endl;
-        bufferFile.close();
+    else{
+        for (int i = 0; i < currentSize; i++){
+            cout << "key "  << keyValueArray[i].key << " currentSize " << currentSize << " i " << i << endl;
+            if (keyValueArray[i].key == key){
+                cout << "=" << endl;
+                keyValueArray[i].value = value;
+                break;
+            }
+            else if (keyValueArray[i].key > key){
+                cout << ">" << endl;
+                for(int j = currentSize; j >= i; j--){
+                    cout << "> - up" << endl;
+                    keyValueArray[j]=keyValueArray[j-1];
+                    }
+                keyValueArray[i] = (KeyValuePair) {key, value};
+            }
+            else if (i == currentSize - 1){
+                cout << "===" << endl;
+                keyValueArray[currentSize] = (KeyValuePair) {key, value};
+            }
+        }
+         currentSize++;
     }
-    return;
+
+    if (currentSize == BUFFER_SIZE+1){
+        flush();
+    }
 }
 
 void BufferClass::printBC() {
@@ -45,29 +57,28 @@ void BufferClass::printBC() {
     return;
 }
 
-bool sorter(KeyValuePair lhs, KeyValuePair rhs) { return lhs.key < rhs.key; }
+bool sorter(KeyValuePair lhs, KeyValuePair rhs) {
+    return lhs.key < rhs.key; 
+}
 
 void BufferClass::sortBC() {
     std::sort(keyValueArray, keyValueArray + BUFFER_SIZE, sorter);
 }  
 
 
-void BufferClass::flush(LevelClass level) {
-    //TODO: create file and store pointer of the file to pass to flush(). 
-    //tiering and leveling
-    // for each file, store a pointer and the file header stores the matadata including pointers to the next file
-    // log file for all the level, can be LSM class
-/*  open a new ssh file
-    - pass buffer array in
-    - append keyValueArray, file pointer, key range to levelArray
-    close the ssh file
-    clear buffer-data.txt
-*/
-    // f.write()
-    // level.insertBuffer(data);
-    // data.KeyValueParis = {};
-    // data.currentSize = 0;
-    // data.keyRange = {};
-    // data.time_t = null;
-    // data.save()
+void BufferClass::flush() {
+    LevelClass level;
+    time_t currentTime = time(NULL); 
+    string filename = ctime(&currentTime);
+    std::ofstream bufferFile (filename);
+    bufferFile << "currentSize | key | value" << endl;
+    for (int i=0; i < BUFFER_SIZE ; i++) {
+        int key = keyValueArray[i].key;
+        string value = keyValueArray[i].value;
+        bufferFile << i+1 << "\t\t" <<  key << "\t\t" << value << endl;
+    }
+    bufferFile.close();
+    level.currentLevel = 1;
+    level.currentSize = 0;
+    level.bufferLocation[level.currentSize] = filename;
 }
