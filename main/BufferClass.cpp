@@ -16,37 +16,40 @@ string BufferClass::getData(int key)
 } 
 
 void BufferClass::insert(int key, string value) { 
+    cout << "SIZE BEFORE "<< currentSize << endl;
     if (currentSize == 0){
          keyValueArray[0] = (KeyValuePair) {key, value};
          currentSize++;
-    }
-    else{
+    } else{
         for (int i = 0; i < currentSize; i++){
-            cout << "key "  << keyValueArray[i].key << " currentSize " << currentSize << " i " << i << endl;
+            //cout << "key "  << keyValueArray[i].key << " currentSize " << currentSize << " i " << i << endl;
             if (keyValueArray[i].key == key){
-                cout << "=" << endl;
                 keyValueArray[i].value = value;
                 break;
-            }
-            else if (keyValueArray[i].key > key){
-                cout << ">" << endl;
-                for(int j = currentSize; j >= i; j--){
-                    cout << "> - up" << endl;
+            } else if (keyValueArray[i].key > key){
+  //              cout << ">>>>>.>     " << currentSize << endl;
+                for(int j = BUFFER_SIZE-1; j > i; j--){
+                 //   cout << keyValueArray[j].key << "ppopop" << keyValueArray[j-1].key << endl;
                     keyValueArray[j]=keyValueArray[j-1];
                     }
                 keyValueArray[i] = (KeyValuePair) {key, value};
-            }
-            else if (i == currentSize - 1){
-                cout << "===" << endl;
+                currentSize++;
+                break;
+            } else if (i == currentSize - 1){
+             //   cout << "===" << endl;
                 keyValueArray[currentSize] = (KeyValuePair) {key, value};
+                currentSize++;
+                break;
             }
         }
-         currentSize++;
     }
-
-    if (currentSize == BUFFER_SIZE+1){
+    
+    if (currentSize == BUFFER_SIZE){
+        cout << " FLUSH " << endl;
         flush();
     }
+
+    cout << "SIZE AFTER "<< currentSize << endl;
 }
 
 void BufferClass::printBC() {
@@ -81,4 +84,8 @@ void BufferClass::flush() {
     level.currentLevel = 1;
     level.currentSize = 0;
     level.bufferLocation[level.currentSize] = filename;
+
+    KeyValuePair keyValueArray[BUFFER_SIZE];
+    currentSize = 0;
+
 }

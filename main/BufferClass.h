@@ -11,7 +11,7 @@
 #include "LevelClass.h"
 using namespace std;
 
-const int BUFFER_SIZE = 5;
+const int BUFFER_SIZE = 4;
 
 struct KeyValuePair
 {

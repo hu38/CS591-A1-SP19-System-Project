@@ -8,7 +8,7 @@ int main() {
 	BufferClass BC;
     BC.currentSize = 0;
 	BC.printBC();
-    BC.insert(3, "3");
+    BC.insert(8, "3");
     BC.printBC();
     BC.insert(1, "1");
     BC.printBC();
@@ -18,9 +18,17 @@ int main() {
     BC.printBC();
     BC.insert(2, "2");
     // BC.printBC();
-    // BC.insert(4, "4");
-    // BC.insert(4, "023132");
+    BC.insert(4, "4");
+    BC.printBC();
+    BC.insert(4, "023132");
+    BC.printBC();
+    BC.insert(0, "1");
+    BC.printBC();
+    BC.insert(5, "6");
+    BC.printBC();
+    //BC.insert(3, "6");
     BC.printBC();
     // BC.flush();
     return 0;
 }
+ 
