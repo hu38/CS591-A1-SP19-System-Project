@@ -37,42 +37,41 @@ bool BufferClass::updateKV(int key, string value) {
     }
     return false;
 }
-
-void BufferClass::insertKV(int key, string value) {
-    // insert key-value to buffer class
-
-    // when buffer is empty
-    if (currentSize == 0) {
-        keyValueArray[0] = (KeyValuePair) {key, value};
-        currentSize = currentSize + 1;
-        return;
-    }
-    // when buffer size is yet to be full
-    else if (currentSize < BUFFER_SIZE) {
-        // if no duplicates, append
-        if (not updateKV(key, value)) {
-           keyValueArray[currentSize] = (KeyValuePair) {key, value}; 
-           currentSize = currentSize + 1;
-        } 
-        // else: if key is new or been marked as deleted previously),
-        // this key-value will be updated, taken care by updateKV
-    }
-    // when buffer is full
-    else {
-        // if the incoming key-value is not a dup, we first flush, 
-        // then append it to newly resetted buffer class
-        if (not updateKV(key, value)) {
-            cout << "-----buffer full, flushing to level 1 before operating-----"<< endl;
-            flush();
-            currentSize = 0;
-            keyValueArray[currentSize] = (KeyValuePair) {key, value};  
-        } 
-        // else: taken care by updateKV
-
-        // normal increment because an insert happened
-        currentSize = currentSize + 1;
+void BufferClass::insert(int key, string value) { 
+    cout << "SIZE BEFORE "<< currentSize << endl;
+    if (currentSize == 0){
+         keyValueArray[0] = (KeyValuePair) {key, value};
+         currentSize++;
+    } else{
+        for (int i = 0; i < currentSize; i++){
+            //cout << "key "  << keyValueArray[i].key << " currentSize " << currentSize << " i " << i << endl;
+            if (keyValueArray[i].key == key){
+                keyValueArray[i].value = value;
+                break;
+            } else if (keyValueArray[i].key > key){
+  //              cout << ">>>>>.>     " << currentSize << endl;
+                for(int j = BUFFER_SIZE-1; j > i; j--){
+                 //   cout << keyValueArray[j].key << "ppopop" << keyValueArray[j-1].key << endl;
+                    keyValueArray[j]=keyValueArray[j-1];
+                    }
+                keyValueArray[i] = (KeyValuePair) {key, value};
+                currentSize++;
+                break;
+            } else if (i == currentSize - 1){
+             //   cout << "===" << endl;
+                keyValueArray[currentSize] = (KeyValuePair) {key, value};
+                currentSize++;
+                break;
+            }
+        }
     }
     
+    if (currentSize == BUFFER_SIZE){
+        cout << " FLUSH " << endl;
+        flush();
+    }
+
+    cout << "SIZE AFTER "<< currentSize << endl;
 }
 
 void BufferClass::printBC() {
@@ -169,6 +168,13 @@ int BufferClass::explore(const char *dirname) {
     closedir(dir);
 
     return cur;
+    // level.currentLevel = 1;
+    // level.currentSize = 0;
+    // level.bufferLocation[level.currentSize] = filename;
+
+    // KeyValuePair keyValueArray[BUFFER_SIZE];
+    // currentSize = 0;
+
 }
     // DIR *dir;
     // struct dirent *entry;

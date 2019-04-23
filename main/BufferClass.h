@@ -37,7 +37,7 @@ class BufferClass {
 	    // string lastUpdatedTime;
 
         int getCurrentSize();
-        void insertKV(int key, string value);
+        void insert(int key, string value);
         bool updateKV(int key, string value);
         bool deleteKV(int key);
         string getData(int key);
