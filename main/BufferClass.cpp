@@ -15,70 +15,185 @@ string BufferClass::getData(int key)
     return "Not Found";
 } 
 
-void BufferClass::insert(int key, string value) { 
-    if (currentSize == 0){
-         keyValueArray[0] = (KeyValuePair) {key, value};
-         currentSize++;
+bool BufferClass::deleteKV(int key) {
+    // return true if key marked as DELETED, else false
+    for (int i = 0; i < currentSize; i++) {
+        if (keyValueArray[i].key == key) {
+            keyValueArray[i].value = "DELETED";
+            return true;
+        }  
     }
-    else{
-        for (int i = 0; i < currentSize; i++){
-            cout << "key "  << keyValueArray[i].key << " currentSize " << currentSize << " i " << i << endl;
-            if (keyValueArray[i].key == key){
-                cout << "=" << endl;
-                keyValueArray[i].value = value;
-                break;
-            }
-            else if (keyValueArray[i].key > key){
-                cout << ">" << endl;
-                for(int j = currentSize; j >= i; j--){
-                    cout << "> - up" << endl;
-                    keyValueArray[j]=keyValueArray[j-1];
-                    }
-                keyValueArray[i] = (KeyValuePair) {key, value};
-            }
-            else if (i == currentSize - 1){
-                cout << "===" << endl;
-                keyValueArray[currentSize] = (KeyValuePair) {key, value};
-            }
-        }
-         currentSize++;
-    }
+    return false;
+}
 
-    if (currentSize == BUFFER_SIZE+1){
-        flush();
+bool BufferClass::updateKV(int key, string value) {
+    // update dup key's value if key exists and return true. if no dups, return false
+    for (int i = 0; i < currentSize; i++) {
+        // check if key is in the array to replace with new value
+        if (keyValueArray[i].key == key) {
+            keyValueArray[i].value = value;
+            return true;
+        }  
     }
+    return false;
+}
+
+void BufferClass::insertKV(int key, string value) {
+    // insert key-value to buffer class
+
+    // when buffer is empty
+    if (currentSize == 0) {
+        keyValueArray[0] = (KeyValuePair) {key, value};
+        currentSize = currentSize + 1;
+        return;
+    }
+    // when buffer size is yet to be full
+    else if (currentSize < BUFFER_SIZE) {
+        // if no duplicates, append
+        if (not updateKV(key, value)) {
+           keyValueArray[currentSize] = (KeyValuePair) {key, value}; 
+           currentSize = currentSize + 1;
+        } 
+        // else: if key is new or been marked as deleted previously),
+        // this key-value will be updated, taken care by updateKV
+    }
+    // when buffer is full
+    else {
+        // if the incoming key-value is not a dup, we first flush, 
+        // then append it to newly resetted buffer class
+        if (not updateKV(key, value)) {
+            cout << "-----buffer full, flushing to level 1 before operating-----"<< endl;
+            flush();
+            currentSize = 0;
+            keyValueArray[currentSize] = (KeyValuePair) {key, value};  
+        } 
+        // else: taken care by updateKV
+
+        // normal increment because an insert happened
+        currentSize = currentSize + 1;
+    }
+    
 }
 
 void BufferClass::printBC() {
-    cout << "key  |  value" << endl;
+    // print current buffer class key-value pairs
+    cout << "__________________" << endl;
+    cout << "| key   |  value |" << endl;
     for (int i=0; i < BUFFER_SIZE ; i++) {
-        cout << std::to_string(keyValueArray[i].key) + "\t" + keyValueArray[i].value << endl;
+        cout << "|" << std::to_string(keyValueArray[i].key) + "\t" <<  "|" << keyValueArray[i].value + "\t" <<  " |" << endl;
     }
+    cout << "-----------------" << endl;
     return;
 }
 
 bool sorter(KeyValuePair lhs, KeyValuePair rhs) {
+    // comparator for KeyValuePair struct. compare based on key by asec order
     return lhs.key < rhs.key; 
+}
+
+int BufferClass::searchKey(int key) {
+    // binary search function accommadated for an array of struct
+    sortBC();
+    std::vector<KeyValuePair> vec(keyValueArray, keyValueArray + BUFFER_SIZE);
+    return std::binary_search(
+        vec.begin(),
+        vec.end(),
+        (KeyValuePair) {key, },
+        sorter
+    );
 }
 
 void BufferClass::sortBC() {
     std::sort(keyValueArray, keyValueArray + BUFFER_SIZE, sorter);
 }  
 
-
 void BufferClass::flush() {
     LevelClass level;
-    time_t currentTime = time(NULL); 
-    string filename = ctime(&currentTime);
+    // time_t currentTime = time(NULL); 
+    // string filename = ctime(&currentTime);
+
+    // dynamically generate filename as level_<level_id>_file_<file_id>.txt
+    string curDir = GetCurrentWorkingDir() + "/lsm_data";
+    char *cstr = &curDir[0u]; 
+    // if /lsm_data doesn't exist, create one
+    if (stat (curDir.c_str(), &info) != 0) {
+        mkdir(cstr, S_IRWXU);
+    }
+    // get the current file count and increment it
+    int nextIter = explore(cstr) + 1;
+    string filename = string() + "lsm_data/level_1_file_" + std::to_string(nextIter) + ".txt";
+    // create a file to store buffer
     std::ofstream bufferFile (filename);
-    bufferFile << "currentSize | key | value" << endl;
+    // sort, store and print data written into the file
+    sortBC();
+    // bufferFile << "key   | value" << endl;
     for (int i=0; i < BUFFER_SIZE ; i++) {
         int key = keyValueArray[i].key;
         string value = keyValueArray[i].value;
-        bufferFile << i+1 << "\t\t" <<  key << "\t\t" << value << endl;
+        bufferFile << key << "\t\t" << value << endl;
+        keyValueArray[i].key = 100000;
+        keyValueArray[i].value = "";
     }
     bufferFile.close();
-    level.currentLevel = 1;
-    level.currentSize = 0;
-    level.bufferLocation[level.currentSize] = filename;
+    // don't think it's needed
+    // level.currentLevel = 1;
+    // level.bufferLocation[nextIter] = filename;
 }
+
+string BufferClass::GetCurrentWorkingDir() {
+  char buff[FILENAME_MAX];
+  GetCurrentDir( buff, FILENAME_MAX );
+  std::string current_working_dir(buff);
+  return current_working_dir;
+}
+
+int BufferClass::explore(const char *dirname) {
+    // return the current length for level 1 array
+    struct dirent *entry;
+    DIR *dir = opendir(dirname);
+    int cur = 0;
+    if (dir == NULL) {
+      return cur;
+    }
+    
+    while ((entry = readdir(dir)) != NULL) {
+        if (entry -> d_name[0] != '.') {
+            string path = string(entry -> d_name);
+            if (path.substr(0, 7) == "level_1") {
+                if (cur < path.at(13)) {
+                    cur = stoi(string() + path.at(13));
+                }
+            }
+        }
+    }
+    closedir(dir);
+
+    return cur;
+}
+    // DIR *dir;
+    // struct dirent *entry;
+    // struct stat info;
+    // dir = opendir(dirname);
+    // if (!dir) {
+    //     return "Directory doesn't exist\n";
+    // }
+    // while ((entry = readdir(dir)) != NULL) {
+    //     if (entry -> d_name[0] != '.') {
+    //         string path = string(dirname) + "/" + string(entry -> d_name);
+    //         string path_ = path;
+    //         const int idx = path.find_last_of("\\/");
+    //         const size_t period_idx = path.rfind('.');
+    //         if (path.find("lsm_data") == 2) {
+                
+    //             if (std::string::npos != idx) {
+    //                 path_.erase(0, idx + 1);
+    //             }
+    //             cout << "Entry = " << path << "-----------" << path_.substr(0, path_.size()-4) << endl;
+    //             stat((char*)path.c_str(), &info);
+    //             if (S_ISDIR(info.st_mode)) {
+    //                 explore((char*)path.c_str());
+    //             } 
+    //         }
+    //     }
+    // }
+    // closedir(dir);

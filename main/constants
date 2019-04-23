@@ -1,2 +1,2 @@
 // this is in javascript. need to be integrated into cpp
-export BUFFER_SIZE = 4;
+export const BUFFER_SIZE = 4;
