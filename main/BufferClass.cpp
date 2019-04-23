@@ -133,6 +133,7 @@ void BufferClass::flush() {
         keyValueArray[i].key = 100000;
         keyValueArray[i].value = "";
     }
+    currentSize = 0;
     bufferFile.close();
     // don't think it's needed
     // level.currentLevel = 1;
