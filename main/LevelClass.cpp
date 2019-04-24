@@ -7,11 +7,11 @@ void LevelClass::sortMerge() {
     1. sort merge
     2. flush currentLevel down - delete current level's files and create a new file for next file at file_1
     */
-//    BufferClass bf = readFile(bufferLocation[0]);
-//    bf.printBC();
-//    KeyValuePair kv1[BUFFER_SIZE] = 
-//    BufferClass BC;
-//    BC.keyValueArray = 
+    BufferClass bf = readFile(bufferLocation[0]);
+
+    KeyValuePair kv1[BUFFER_SIZE] = 
+    BufferClass BC;
+    BC.keyValueArray = 
     BufferClass answer = new BufferClass()
     int i = 0, j = 0, k = 0;
 
@@ -44,8 +44,10 @@ void LevelClass::sortMerge() {
 
 }
 
-void LevelClass::readFile(string filename) {
+vector<KeyValuePair> LevelClass::readFile(string filename) {
     // BufferClass BC;
+    
+    KeyValuePair levelArray[BUFFER_SIZE];
     int key;
     string value;
     fstream newLevel;
@@ -62,8 +64,9 @@ void LevelClass::readFile(string filename) {
         currentSize = currentSize + 1;
     }
     newLevel.close();
-    // BC.sortBC();
-    // return BC;
+    vector<KeyValuePair> vec(levelArray, levelArray + BUFFER_SIZE);
+    
+    return vec;
 }
 
 void LevelClass::printLV() {

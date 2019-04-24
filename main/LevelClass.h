@@ -17,7 +17,7 @@ class LevelClass {
         int currentLevel;
 
         void sortMerge();
-        void readFile(string filename);
+        vector<KeyValuePair> readFile(string filename);
         void printLV();
 };
 
