@@ -16,7 +16,7 @@ class LevelClass {
         int currentSize;
         int currentLevel;
 
-        void sortMerge();
+        vector<KeyValuePair> sortMerge(vector<KeyValuePair> array1, vector<KeyValuePair> array2);
         vector<KeyValuePair> readFile(string filename);
         void printLV();
         void generateFilenameList();

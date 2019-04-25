@@ -2,7 +2,11 @@
 
 // Append: called from a BufferClass object, adds a keyValue object to end of array
 
-void LevelClass::sortMerge() {
+
+
+
+
+vector<KeyValuePair> LevelClass::sortMerge(vector<KeyValuePair> array1, vector<KeyValuePair> array2) {
     /*
     1. sort merge
     2. flush currentLevel down - delete current level's files and create a new file for next file at file_1
@@ -13,31 +17,37 @@ void LevelClass::sortMerge() {
 //    BufferClass BC;
 //    BC.keyValueArray = 
     // BufferClass answer = new BufferClass()
-    vector<KeyValuePair> c;
+    vector<KeyValuePair> Result;
     int i = 0, j = 0, k = 0;
 
-    // while (i < a.size() && j < b.size()){
-    //     if a.at(i).key < b.at(j).key{
-    //         answer.append(a.at(i))
-    //     }
-    //     else if a.at(i).key > b.at(j).key{
+    while (i < array1.size() && j < array2.size()){
+        if (array1[i].key < array2[j].key) {
+            Result[i+j] = array1[i];
+            i++;
+        }
+        else if (array1[i].key > array2[j].key) {
+            Result[i+j] = array2[j];
+            j++;
+        }
 
-    //         answer.append(b.at(j))
-    //     }
-    //     else{
-    //         answer.append(b.at(j)) // for now, we can look into it later
-    //     }
-    // }
+        else{
+            Result[i+j] = array2[i]
+            i++;
+            j++;
+        }
+    }
+    
+    while (i < array1.size()){
+          Result[i+j] = array1[i];
+          i++;
+    } 
 
-    // while (i < a.size()){
-    //     answer.append(a.at(i))
-    // } 
+    while (j < array2.size()){
+          Result[i+j] = array2[j];
+          j++;
+    } 
 
-    // while (j < b.size()) {   
-    //     answer.append(b.at(i))
-    // }
-    // // Call Append into a new level with the class
-    // bf = bf[2:]
+    return Result;
 }
 
 vector<KeyValuePair> LevelClass::readFile(string filename) {
