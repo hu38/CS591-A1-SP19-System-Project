@@ -1,7 +1,7 @@
 #ifndef LevelClass_H
 #define LevelClass_H
 
-#include <iostream>
+#include <sstream>
 #include "BufferClass.h"
 
 using namespace std;
@@ -11,7 +11,7 @@ const int SIZE_RATIO = 4;
 
 class LevelClass {
     public:
-        string bufferLocation[SIZE_RATIO];
+        string filenameList[SIZE_RATIO];
         KeyValuePair levelArray[BUFFER_SIZE * SIZE_RATIO];
         int currentSize;
         int currentLevel;
@@ -19,6 +19,8 @@ class LevelClass {
         void sortMerge();
         vector<KeyValuePair> readFile(string filename);
         void printLV();
+        void generateFilenameList();
+        void combineLevelArrays();
 };
 
 #endif

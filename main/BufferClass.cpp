@@ -15,28 +15,28 @@ string BufferClass::getData(int key)
     return "Not Found";
 } 
 
-bool BufferClass::deleteKV(int key) {
-    // return true if key marked as DELETED, else false
-    for (int i = 0; i < currentSize; i++) {
-        if (keyValueArray[i].key == key) {
-            keyValueArray[i].value = "DELETED";
-            return true;
-        }  
-    }
-    return false;
-}
+// bool BufferClass::deleteKV(int key) {
+//     // return true if key marked as DELETED, else false
+//     for (int i = 0; i < currentSize; i++) {
+//         if (keyValueArray[i].key == key) {
+//             keyValueArray[i].value = "DELETED";
+//             return true;
+//         }  
+//     }
+//     return false;
+// }
 
-bool BufferClass::updateKV(int key, string value) {
-    // update dup key's value if key exists and return true. if no dups, return false
-    for (int i = 0; i < currentSize; i++) {
-        // check if key is in the array to replace with new value
-        if (keyValueArray[i].key == key) {
-            keyValueArray[i].value = value;
-            return true;
-        }  
-    }
-    return false;
-}
+// bool BufferClass::updateKV(int key, string value) {
+//     // update dup key's value if key exists and return true. if no dups, return false
+//     for (int i = 0; i < currentSize; i++) {
+//         // check if key is in the array to replace with new value
+//         if (keyValueArray[i].key == key) {
+//             keyValueArray[i].value = value;
+//             return true;
+//         }  
+//     }
+//     return false;
+// }
 void BufferClass::insert(int key, string value) { 
     cout << "SIZE BEFORE "<< currentSize << endl;
     if (currentSize == 0){
@@ -107,13 +107,13 @@ void BufferClass::sortBC() {
 }  
 
 void BufferClass::flush() {
-    LevelClass level;
+    // LevelClass level;
     // time_t currentTime = time(NULL); 
     // string filename = ctime(&currentTime);
 
     // dynamically generate filename as level_<level_id>_file_<file_id>.txt
     string curDir = GetCurrentWorkingDir() + "/lsm_data";
-    char *cstr = &curDir[0u]; 
+    char *cstr = &curDir[0u];
     // if /lsm_data doesn't exist, create one
     if (stat (curDir.c_str(), &info) != 0) {
         mkdir(cstr, S_IRWXU);

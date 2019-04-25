@@ -1,4 +1,4 @@
-// #include "BufferClass.cpp"
+#include "BufferClass.cpp"
 #include "LevelClass.cpp"
 #include "LSM.cpp"
 using namespace std;
@@ -15,13 +15,13 @@ int main() {
     // BC.insert(1, "9000");
     // BC.insert(2, "2");
     // BC.insert(4, "4");
-    // BC.updateKV(4, "023132");
     // BC.insert(5, "5");
     // BC.insert(7, "7");
     // BC.printBC();
     LevelClass lv;
-    lv.readFile("lsm_data/level_1_file_1.txt");
-    // cout << typeid(bf).name() << endl;
+    lv.currentLevel = 1;
+    lv.generateFilenameList();
+    lv.combineLevelArrays();
     lv.printLV();
     return 1;
 }

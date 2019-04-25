@@ -2,7 +2,7 @@
 #define BufferClass_H
 
 #include <iostream>
-#include <sys/uio.h> // https://stackoverflow.com/questions/2762010/osx-sys-io-h-not-found
+#include <sys/uio.h>//https://stackoverflow.com/questions/2762010/osx-sys-io-h-not-found
 #include <string.h>
 #include <string>
 #include <stdio.h>
@@ -17,7 +17,8 @@
 #include <ctime>
 #include <algorithm>
 #include <vector>
-#include "LevelClass.h"
+#include <typeinfo>
+// #include "LevelClass.h"
 using namespace std;
 
 
@@ -31,21 +32,21 @@ struct KeyValuePair
 
 class BufferClass {
 	public:
-        KeyValuePair keyValueArray[BUFFER_SIZE]; // ensure key and value share a relationship
-	    int currentSize;
-	    // int keyRange[2]; wait for Fence Pointer
-	    // string lastUpdatedTime;
+                KeyValuePair keyValueArray[BUFFER_SIZE]; // ensure key and value share a relationship
+                int currentSize;
+                // int keyRange[2]; wait for Fence Pointer
+                // string lastUpdatedTime;
 
-        int getCurrentSize();
-        void insert(int key, string value);
-        bool updateKV(int key, string value);
-        bool deleteKV(int key);
-        string getData(int key);
-	    void flush();
-        int explore(const char *dirname);
-        string GetCurrentWorkingDir();
-        void printBC();
-        void sortBC();
-        int searchKey(int key);
+                int getCurrentSize();
+                void insert(int key, string value);
+                // bool updateKV(int key, string value);
+                // bool deleteKV(int key);
+                string getData(int key);
+                void flush();
+                int explore(const char *dirname);
+                string GetCurrentWorkingDir();
+                void printBC();
+                void sortBC();
+                int searchKey(int key);
 };
 #endif
