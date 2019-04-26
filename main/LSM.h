@@ -24,6 +24,11 @@ class LSM {
         vector<string> rangeLookup(int lowerBoundKey, int upperBoundKey);
         
         void print_LSM();
+
+
+        // Level Operations:
+
+
 };
 
 #endif

@@ -37,35 +37,42 @@ string BufferClass::getData(int key)
 //     }
 //     return false;
 // }
-void BufferClass::insert(int key, string value) { 
+void BufferClass::insert(int key, string value, bool flag) { 
+/*
+    @params a key, value and a deleted flag
+    @return no returns, simply updates the buffer
+    This function takes the key, value and flag for a new write, update or delete and inserts it into the sorted buffer with no duplicates
+*/
     cout << "SIZE BEFORE "<< currentSize << endl;
+    // for the first element, simply add it to position 0 and increase the current size
     if (currentSize == 0){
-         keyValueArray[0] = (KeyValuePair) {key, value};
+         keyValueArray[0] = (KeyValuePair) {key, value, flag};
          currentSize++;
     } else{
+        // iterate through the entire array until finding a key larger than the new key or getting to the end
         for (int i = 0; i < currentSize; i++){
-            //cout << "key "  << keyValueArray[i].key << " currentSize " << currentSize << " i " << i << endl;
+            // if a duplicate is found, subsitute the new value and flag
             if (keyValueArray[i].key == key){
                 keyValueArray[i].value = value;
+                keyValueArray[i].flag = flag;
                 break;
+            // if a larger key is found, insert the new key,value pair and shift all other elements down
             } else if (keyValueArray[i].key > key){
-  //              cout << ">>>>>.>     " << currentSize << endl;
                 for(int j = BUFFER_SIZE-1; j > i; j--){
-                 //   cout << keyValueArray[j].key << "ppopop" << keyValueArray[j-1].key << endl;
                     keyValueArray[j]=keyValueArray[j-1];
                     }
-                keyValueArray[i] = (KeyValuePair) {key, value};
+                keyValueArray[i] = (KeyValuePair) {key, value, flag};
                 currentSize++;
                 break;
+            // if the end of the buffer is reached, simply add the element to the end
             } else if (i == currentSize - 1){
-             //   cout << "===" << endl;
-                keyValueArray[currentSize] = (KeyValuePair) {key, value};
+                keyValueArray[currentSize] = (KeyValuePair) {key, value, flag};
                 currentSize++;
                 break;
             }
         }
     }
-    
+    // if the current size reaches the limit, flush the buffer and restart the counters
     if (currentSize == BUFFER_SIZE){
         cout << " FLUSH " << endl;
         flush();
