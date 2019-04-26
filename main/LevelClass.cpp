@@ -4,22 +4,19 @@
 
 
 
-
-
 vector<KeyValuePair> LevelClass::sortMerge(vector<KeyValuePair> array1, vector<KeyValuePair> array2) {
-    /*
-    1. sort merge
-    2. flush currentLevel down - delete current level's files and create a new file for next file at file_1
-    */
-//    BufferClass bf = readFile(bufferLocation[0]);
-//    bf.printBC();
-//    KeyValuePair kv1[BUFFER_SIZE] = 
-//    BufferClass BC;
-//    BC.keyValueArray = 
-    // BufferClass answer = new BufferClass()
+/**
+       @params two sorted vectors of key value pairs with no duplicates, where array1 contains older inserts/updates than array 2.
+       @return a vector of key value pairs, with no duplicates.
+       This function will merge two arrays of key value pairs and return a sorted array.
+ */
+
+    // Initialize vecture of result
     vector<KeyValuePair> Result;
     int i = 0, j = 0, k = 0;
 
+    // While both arrays have elements left to iterate through, compare the next element in each array and add
+    // the one with the smallest key to the result array
     while (i < array1.size() && j < array2.size()){
         if (array1[i].key < array2[j].key) {
             Result[i+j] = array1[i];
@@ -30,6 +27,7 @@ vector<KeyValuePair> LevelClass::sortMerge(vector<KeyValuePair> array1, vector<K
             j++;
         }
 
+        // If a duplicate is found, add the newest one and ignore the other one
         else{
             Result[i+j] = array2[i]
             i++;
@@ -37,11 +35,11 @@ vector<KeyValuePair> LevelClass::sortMerge(vector<KeyValuePair> array1, vector<K
         }
     }
     
+    // if only one of the two arrays have elements left, add them to the end of the result array.
     while (i < array1.size()){
           Result[i+j] = array1[i];
           i++;
     } 
-
     while (j < array2.size()){
           Result[i+j] = array2[j];
           j++;

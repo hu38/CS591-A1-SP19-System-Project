@@ -3,17 +3,17 @@ using namespace std;
 
 void LSM::insertValue(int key, string value) {
     BufferClass buffer;
-    buffer.insert(key, value);
+    buffer.insert(key, value, false);
 }
 
 void LSM::updateValue(int key, string value) {
     BufferClass buffer;
-    buffer.insert(key, value);
+    buffer.insert(key, value, false);
 }
 
 void LSM::deleteValue(int key) {
     BufferClass buffer;
-    buffer.insert(key, "DELETED");
+    buffer.insert(key, NULL, true);
 }
 
 string LSM::pointLookup(int key) {

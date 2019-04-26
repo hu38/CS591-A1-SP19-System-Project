@@ -28,6 +28,7 @@ struct KeyValuePair
 {   
     int key;
     string value;
+    bool deleted;
 };
 
 class BufferClass {
