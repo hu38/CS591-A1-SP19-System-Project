@@ -75,6 +75,7 @@ void BufferClass::insert(int key, string value) {
 }
 
 void BufferClass::printBC() {
+    
     // print current buffer class key-value pairs
     cout << "__________________" << endl;
     cout << "| key   |  value |" << endl;
@@ -107,6 +108,11 @@ void BufferClass::sortBC() {
 }  
 
 void BufferClass::flush() {
+    /**
+     * flushes filled buffer data into level 1
+     * @param void
+     * @return void
+     */
     // LevelClass level;
     // time_t currentTime = time(NULL); 
     // string filename = ctime(&currentTime);
