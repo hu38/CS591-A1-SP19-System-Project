@@ -8,14 +8,33 @@ using namespace std;
 struct levelArray {
     int levelNumber;
     int keyRange[2]; // note: [lowerBound, upperBound)
-    KeyValuePair levelArray[SIZE_RATIO * BUFFER_SIZE];
+    KeyValuePair pairs[SIZE_RATIO * BUFFER_SIZE];
+};
+
+
+struct levelMeta {
+    int levelNumber;
+    vector<int> lowerBound;
+    vector<int> upperBound;
+
+    //TODO: figure out constructor to avoid copies: levelNumber(lvNum), lowerBound(low), upperBound(upper) {};
+
+    // levelMeta(const levelMeta& meta): 
+    //     levelNumber(meta.levelNumber), 
+    //     lowerBound(meta.lowerBound), 
+    //     upperBound(meta.upperBound) {};
+    
+    // levelMeta(const int& levelNumber, const vector<int>& lowerBound[BUFFER_SIZE], const vector<int>& upperBound): 
+    //     levelNumber(levelNumber), 
+    //     lowerBound(lowerBound), 
+    //     upperBound(upperBound) {};
 };
 
 class LSM {
     public:
         int lsm_tree[5];
         int totalLevel;
-        levelArray allLevel[SIZE_RATIO * BUFFER_SIZE];
+        levelArray allLevel[10];
 
         void insertValue(int key, string value);
         void updateValue(int key, string value);
@@ -23,12 +42,8 @@ class LSM {
         string pointLookup(int key);
         vector<string> rangeLookup(int lowerBoundKey, int upperBoundKey);
         
+        string searchKey(vector<KeyValuePair> vec, int key);
         void print_LSM();
-
-
-        // Level Operations:
-
-
 };
 
 #endif

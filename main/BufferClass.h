@@ -18,36 +18,31 @@
 #include <algorithm>
 #include <vector>
 #include <typeinfo>
-// #include "LevelClass.h"
 using namespace std;
-
 
 const int BUFFER_SIZE = 5;
 struct stat info;
 struct KeyValuePair
-{   
-    int key;
-    string value;
-    bool deleted;
+{   int key;
+    string value; //TODO: vary datatype? change it to char[x]!!! KeyValuePair is 40 bytes = (4+4) + 8 + 8 + 8 + (1+7).
+    bool flag;
 };
 
 class BufferClass {
 	public:
-                KeyValuePair keyValueArray[BUFFER_SIZE]; // ensure key and value share a relationship
+                //TODO: upgrade to skiplist
+                KeyValuePair keyValueArray[BUFFER_SIZE];
                 int currentSize;
-                // int keyRange[2]; wait for Fence Pointer
-                // string lastUpdatedTime;
 
                 int getCurrentSize();
-                void insert(int key, string value);
-                // bool updateKV(int key, string value);
-                // bool deleteKV(int key);
-                string getData(int key);
+                void insert(int key, string value, bool flag);
                 void flush();
+                void flush2();
                 int explore(const char *dirname);
                 string GetCurrentWorkingDir();
                 void printBC();
+                string searchKeyInBuffer(int key);
                 void sortBC();
-                int searchKey(int key);
+                int checkKey(int key);
 };
 #endif
