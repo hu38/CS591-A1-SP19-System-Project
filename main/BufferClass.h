@@ -40,7 +40,7 @@ class BufferClass {
 
                 int getCurrentSize();
                 void insert(int key, string value, bool flag);
-                string flushLevel(int currentLevel);
+                int flushLevel(int currentLevel);
                 string flushTier(int numberOfTiersInLevel1);
                 void writeToFile(string filename, vector<KeyValuePair> data);
 

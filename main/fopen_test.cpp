@@ -22,7 +22,7 @@ int main (int argc, char** argv)
         data[i].key=i*2;
         data[i].value=i*2+1;
     }
-
+// g++ fopen_test.cpp -o test && ./test
     FILE* fp=fopen("./fopen_test.dat","rw+");
     // printf("%d",fp);    
     // perror("error");

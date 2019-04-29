@@ -43,6 +43,7 @@ class LSM {
         bool checkFlushTier(int levelNumber);
         void flushLevel(int currentLevel);
         vector<KeyValuePair> flushTier(int currentLevel);
+        void driverLeveling(int operation, int key, string value, int targetKey, int lowerBound, int upperBound, int Q, int T);
 
         string searchKeyInFile(string filename, int key);
         vector<KeyValuePair> readKVFromFile(string filename);

@@ -42,6 +42,7 @@ void BufferClass::insert(int key, string value, bool flag) {
         }
     } else {
         currentSize = 0;
+        totalNonDup = 0;
         // if the current size reaches the limit, flush in driver
     }
 }
@@ -54,29 +55,23 @@ void BufferClass::insert(int key, string value, bool flag) {
  * @param[levelSize] how many pages are in a level. it should be 1 all the time in leveling.
  * @return a placeholder string for no apparent purpose
  */
-string BufferClass::flushLevel(int levelSize) {
-    // retreive the current level file
-    // string prevRecordName = "lsm_data/level_1_file_" + to_string(levelSize - 1) + ".txt";
-    // // get the existing level 1 key-value data if there is any.
-    // vector<KeyValuePair> prevKV = readFile(prevRecordName);
-    // // construct a vector for current key-value data (yet to flush to level 1)
-    // vector<KeyValuePair> curKV(keyValueArray, keyValueArray + totalNonDup);
-    // // sort merge existing and new data to form a new leveling data
-    // vector<KeyValuePair> ret = sortMerge(prevKV, curKV);
-    // // put the updated level 1 data to the original file "level_1_file_1.txt"
-    // std::ofstream bufferFile (prevRecordName);
-    // for (int i=0; i < ret.size() ; i++) {
-    //     int key = ret[i].key;
-    //     string value = ret[i].value;
-    //     bool flag = ret[i].flag;
-    //     bufferFile << key << " " << value << " " << flag << "\n";
-    // }
-    // bufferFile.close();
-    // // update the keyRange
-    // smallest = keyValueArray[0].key;
-    // largest = keyValueArray[BUFFER_SIZE - 1].key;
-
-    return "";
+int BufferClass::flushLevel(int levelNumber) {
+    string prevRecordName = "lsm_data/level_" + to_string(levelNumber) + "_file_1.txt";
+    // get the existing level 1 key-value data if there is any.
+    vector<KeyValuePair> prevKV = readFile(prevRecordName);
+    vector<KeyValuePair> curKV(keyValueArray, keyValueArray + totalNonDup);
+    // sort merge existing and new data to form a new leveling data
+    vector<KeyValuePair> ret = (prevKV.size() > 0) ? sortMerge(prevKV, curKV) : curKV;
+    // put the updated level 1 data to the original file "level_1_file_1.txt"
+    std::ofstream bufferFile (prevRecordName);
+    for (int i=0; i < ret.size() ; i++) {
+        int key = ret[i].key;
+        string value = ret[i].value;
+        bool flag = ret[i].flag;
+        bufferFile << key << " " << value << " " << flag << "\n";
+    
+    bufferFile.close();
+    return ret.size();
 }
 
 
@@ -88,6 +83,18 @@ string BufferClass::flushTier(int numberOfTiersInLevel1) {
         int key = keyValueArray[i].key;
         string value = keyValueArray[i].value;
         bool flag = keyValueArray[i].flag;
+    string prevRecordName = "lsm_data/level_" + to_string(levelNumber) + "_file_1.txt";
+    // get the existing level 1 key-value data if there is any.
+    vector<KeyValuePair> prevKV = readFile(prevRecordName);
+    vector<KeyValuePair> curKV(keyValueArray, keyValueArray + totalNonDup);
+    // sort merge existing and new data to form a new leveling data
+    vector<KeyValuePair> ret = (prevKV.size() > 0) ? sortMerge(prevKV, curKV) : curKV;
+    // put the updated level 1 data to the original file "level_1_file_1.txt"
+    std::ofstream bufferFile (prevRecordName);
+    for (int i=0; i < ret.size() ; i++) {
+        int key = ret[i].key;
+        string value = ret[i].value;
+        bool flag = ret[i].flag;
         bufferFile << key << " " << value << " " << flag << "\n";
     }
 
@@ -114,7 +121,6 @@ vector<KeyValuePair> BufferClass::readFile(string filepath) {
     newFile.open(filepath);
     int count = 0;
     while (newFile >> key >> value >> flag) {
-        cout << "key " << key << ", value: " << value << ", flag: " << flag << endl;
         tmp[count] = (KeyValuePair) {key, value, flag};
         currentSize += 1;
         count += 1;
@@ -172,7 +178,6 @@ vector<KeyValuePair> BufferClass::sortMerge(vector<KeyValuePair> array1, vector<
     } 
     
     if (duplicatecount > 0) {
-        cout << "am I here - " << duplicatecount << endl;
         vector<KeyValuePair> finalRes(Result.size() - duplicatecount); 
         for (int q = 0; q < finalRes.size(); q++){
             finalRes[q] = Result[q];

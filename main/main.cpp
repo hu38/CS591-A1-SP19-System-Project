@@ -375,15 +375,10 @@ int main(int argc, char *argv[]) {
             lsm.driverTiering(operation, key1, value, key1, key1, key2, Q, T);
         }
     } else {
-
-        cout << "p";
-        // // puting a level 0, so that we can start with level 1.
-        // levelMetadata placeholder = {0, };
-        // lsm.LSMLevel.push_back(placeholder);
-        // lsm.currentLevel = 1;
-        // while (infile >> operation >> key1 >> key2 >> value){
-        //     lsm.driverLeveling(operation, key1, value, key1, key1, key2, Q, T, lsm);        
-        //}
+        lsm.currentLevel = 0;
+        while (infile >> operation >> key1 >> key2 >> value){
+            lsm.driverLeveling(operation, key1, value, key1, key1, key2, Q, T);        
+        }
     }
 
     // vector<KeyValuePair> tmp = buffer.readFile("lsm_data/level_1_file_1.txt");
@@ -489,6 +484,3 @@ int main(int argc, char *argv[]) {
     // }
     // // close file 
     // fclose (infile); 
-    
-    // ////////////////////////////////////////////////////////////////////////////////////
-    

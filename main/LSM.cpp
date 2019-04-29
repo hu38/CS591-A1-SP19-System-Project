@@ -1,6 +1,107 @@
 #include "LSM.h"
 using namespace std;
 
+void LSM::driverLeveling(int operation, int key, string value, int targetKey, int lowerBound, int upperBound, int Q, int T) {
+    bool flushed = false;
+    switch (operation) {
+        case 0: {
+            cout << "Inserting key " << key << " and value " << value << endl;
+            Buffer.insert(key, value, false);
+            if (Buffer.currentSize == BUFFER_SIZE) {
+                // flushLevel() would sortMerge before flush, and currentLevel will always be >= 1.
+                cout << "FLUSHING! current level: " << currentLevel << ", lsm size: " << LSMLevel.size() << endl;
+                int totalPairs = Buffer.flushLevel(currentLevel);
+                for (int i=0; i<LSMLevel.size(); i++) {
+                    if (LSMLevel[i].totalNumberOfPairs > BUFFER_SIZE * pow(SIZE_RATIO, i)) {
+                        
+                    } else {
+                        currentLevel += 1;
+                        totalPairs = Buffer.flushLevel(currentLevel);
+                        string filename = "lsm_data/level_" + to_string(i) + "_file_1.txt";
+                        int ranges[] = {Buffer.smallest, Buffer.largest};
+                        levelMetadata newLevel = {currentLevel, filename, *ranges, totalPairs};
+                        LSMLevel.push_back(newLevel);
+                    }
+                }
+            }
+                break;
+        }
+        case 1: {
+            Buffer.insert(key, value, false);
+            cout << "updated key " + to_string(key) + " and value" + value << endl;
+            if (Buffer.currentSize == BUFFER_SIZE) {
+                // buffer.flush();
+                Buffer.currentSize = 0;
+                flushed = true;
+
+            }
+            if (flushed == true){
+                int numOfLevels = LSMLevel.size();
+                for (int i = 0; i < numOfLevels; i++){
+                    if (LSMLevel[i].totalNumberOfPairs >= (Q * (T^i))){
+                        flushLevel(i);
+                    } else {
+                        break;
+                    }
+                }
+            }
+            
+            break;
+        }
+        case 2: {
+            Buffer.insert(key, "", true);
+            cout << "deleted key " + to_string(key) << endl;
+            if (Buffer.currentSize == BUFFER_SIZE) {
+                // Buffer.flush();
+                Buffer.currentSize = 0;
+                flushed = true;
+
+            }
+            if (flushed == true){
+                int numOfLevels = LSMLevel.size();
+                for (int i = 0; i < numOfLevels; i++){
+                    if (LSMLevel[i].totalNumberOfPairs >= (Q * (T^i))){
+                        flushLevel(i);
+                    } else {
+                        break;
+                    }
+                }
+            }
+            
+            break;
+        }
+        case 3: {
+            string pointLookup = Buffer.searchKeyInBuffer(targetKey);
+            if (pointLookup != "") 
+                cout << "found key " + to_string(targetKey) + "'s value as " + pointLookup  << endl;
+            else if (pointLookupLevel(targetKey) != "") {
+                pointLookup = pointLookupLevel(targetKey);
+                cout << "found key " + to_string(targetKey) + "'s value as " + pointLookup  << endl;
+            } else {
+                cout << "key not found"  << endl;
+            }
+            break;
+        }
+        case 4: {
+            vector<string> rangeLookup = rangeLookupLevel(lowerBound, upperBound);
+            if (rangeLookup.size() > 0) {
+                cout << "found: ";
+                for (int i=0; i< rangeLookup.size(); i++) {
+                    cout << rangeLookup[i];
+                }
+                cout << endl;
+            }
+            else {
+                cout << "key not found"  << endl;
+            }
+            break;
+        }
+        default: {
+            cout << "requested operation code " << to_string(operation) << " not found" << endl; 
+        }
+    }
+}
+
 
 string LSM::searchKeyInFile(string filename, int targetKey) {
     ifstream targetFile(filename);
