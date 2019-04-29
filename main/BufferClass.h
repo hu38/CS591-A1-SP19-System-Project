@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <vector>
 #include <typeinfo>
+#include <tuple>
 using namespace std;
 
 const int BUFFER_SIZE = 5;
@@ -32,18 +33,25 @@ class BufferClass {
 	public:
                 //TODO: upgrade to skiplist
                 KeyValuePair keyValueArray[BUFFER_SIZE];
-                int currentSize = 0;
+                int currentSize; 
+                int smallest; // keyRange[0]
+                int largest; // keyRange[1]
+                int totalNonDup; // total non-duplicated key-value pairs
 
                 int getCurrentSize();
                 void insert(int key, string value, bool flag);
-                void flush();
+                string flushLevel(int currentLevel);
+                void writeToFile(string filename, vector<KeyValuePair> data);
 
-                void flush2();
-                int explore(const char *dirname);
+                vector<KeyValuePair> sortMerge(vector<KeyValuePair> array1, vector<KeyValuePair> array2);
+                vector<KeyValuePair> readFile(string filename);
+                int flush(int currentLevel);
+                int explore(const char *dirname, int currentLevel);
                 string GetCurrentWorkingDir();
                 void printBC();
                 string searchKeyInBuffer(int key);
                 void sortBC();
                 int checkKey(int key);
+
 };
 #endif

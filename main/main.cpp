@@ -5,23 +5,35 @@ using namespace std;
 #include <typeinfo>
 #include <cstdlib>
 
-void buildWorkload(string wokload_kind, int total){
+/**
+ * all comments are following https://developer.lsst.io/cpp/api-docs.html standard
+ */
+
+/**
+ * generates a workload based on user inputs (what type of workload - general/evenly distributed, 
+ * insert heavy, update/delete heavy, point lookup heavy, or range lookup heavy.)
+ * 
+ * @param[workload_kind:required] instruction for the above workload type in form of string (Gral,
+ * Insert, Update/Del, PointR, RangeR respectively)
+ * @param[total:required] the number of total records desired to generate
+ */
+void buildWorkload(string workload_kind, int total){
     int probabilities[20] = {0,0,0,0,1,1,2,2,3,3,3,3,4,4,4,4};
 
-    if (wokload_kind == "Gral"){
+    if (workload_kind == "Gral"){
         probabilities[0] = 0;
-    } else if (wokload_kind == "Insert"){
+    } else if (workload_kind == "Insert"){
         probabilities[5] = 0;
         probabilities[7] = 0;
         probabilities[9] = 0;
         probabilities[13] = 0;
         probabilities[15] = 0;
-    } else if (wokload_kind == "Update/Del"){
+    } else if (workload_kind == "Update/Del"){
         probabilities[0] = 1;
         probabilities[9] = 2;
         probabilities[13] = 1;
         probabilities[15] = 2;
-    } else if (wokload_kind == "PointR"){
+    } else if (workload_kind == "PointR"){
         probabilities[0] = 3;
         probabilities[4] = 3;
         probabilities[6] = 3;
@@ -35,23 +47,20 @@ void buildWorkload(string wokload_kind, int total){
         probabilities[11] = 4;
     }
 
-
     // Now that the probabilities are specified, generate the workload
-
     srand(time(NULL));
     int i;
     //OperationKeyValueTrio workload[10*total];
     //int workloadSize = 0;
     std::ofstream workloadfile ("workload.txt");
     for (i = 0; i < total; i++){
-
         int randIndex = rand() % 20;
         int operation = probabilities[randIndex];
         int key = rand() % (total/2);
         string value = std::to_string(rand() % 1000);
-        if (operation == 4){
+        if (operation == 4) {
             int key2 = rand() % total/2;
-            if (key > key2){
+            if (key > key2) {
                 workloadfile << operation << " " << key2 << " " << key << " " << value << "\n";
             } else {
                 workloadfile << operation << " " << key << " " << key2 << " " << value << "\n";
@@ -60,21 +69,10 @@ void buildWorkload(string wokload_kind, int total){
             string value = std::to_string(rand() % total);
             workloadfile << operation << " " << key << " " << 0 << " " << value << "\n";
         }
-
     }
-
     workloadfile.close();
-
 }
 
-/**
- * all comments are following https://developer.lsst.io/cpp/api-docs.html standard
- */
-
-vector<levelMetadata> getMetadata() {
-    vector<levelMetadata> ret;
-    return ret;
-}
 /**
  * driver function that takes one single instruction from workload
  * 
@@ -88,36 +86,44 @@ vector<levelMetadata> getMetadata() {
  * @return void
  */
 //FIXME: 
+
 BufferClass buffer;
 LevelClass level;
 LSM lsm;
+
 void driverLeveling(int operation, int key = 0, string value = "", int targetKey = 0, int lowerBound = 0, int upperBound = 0, int Q =0, int T = 0) {
-    int bufferSize = buffer.currentSize;
+    // int bufferSize = buffer.currentSize;
     bool flushed = false;
-    vector<levelMetadata> levelMetadata = getMetadata();
-    // int totalLevel = levelMetadatadata.size();
-    //int levelSize = levelMetadata.back().levelNumber;
-    // levelMetadata curLevel = lsm.LSMLevel[levelSize];
-    //TODO: runtime for print to substruct from overall runtime?
+    vector<levelMetadata> currentLSM = lsm.LSMLevel;
+    // vector<levelMetadata> levelMetadata = getMetadata();
+    //TODO: runtime for print to substruct from overall runtime? + add timer
     switch (operation) {
         //TODO: make these all alive with manifest file
         case 0: {
+            cout << "i'm inserting key " << key << " and value " << value << endl;
             buffer.insert(key, value, false);
-            cout << "inserted key " + to_string(key) + " and value" + value << endl;
-            if (bufferSize == BUFFER_SIZE) {
-                buffer.flush();
-                buffer.currentSize = 0;
-                flushed = true;
-            }
-            if (flushed == true){
-                int numOfLevels = lsm.LSMLevel.size();
-                for (int i = 0; i < numOfLevels; i++){
-                    if (lsm.LSMLevel[i].totalNumberOfPairs >= (Q * (T^i))){
-                        // lsm.flushLevel(i);
-                    } else {
-                        break;
-                    }
-                }
+            if (buffer.currentSize == BUFFER_SIZE) {
+                string newFilename = buffer.flushLevel(currentLSM.size() + 1);
+                int ranges[] = {buffer.smallest, buffer.largest};
+                levelMetadata newPage = {lsm.currentLevel, newFilename, *ranges, 1};
+                newPage.totalNumberOfPairs = buffer.totalNonDup;
+                currentLSM.push_back(newPage);
+                lsm.currentLevel++;
+                buffer.totalNonDup = 0;
+                int levelSize = currentLSM[lsm.currentLevel].totalNumberOfPairs;
+                //     cout << currentLSM[i].filename << endl;
+                //     if (kv.size() >= (Q * pow(T, lsm.currentLevel))) {
+                //         cout << "we should have a new level" << endl;
+                //         lsm.currentLevel --;
+                //     }
+                //     if (currentLSM[i].totalNumberOfPairs >= (Q * (T^i))){
+                //         lsm.flushLevel(i);
+                //         lsm.currentLevel ++;
+                //         cout << "new level: " << lsm.currentLevel << endl;
+                //     } else {
+                //         cout << "here!" << endl;
+                //         break;
+                //     }
             }
             
             break;
@@ -125,8 +131,8 @@ void driverLeveling(int operation, int key = 0, string value = "", int targetKey
         case 1: {
             buffer.insert(key, value, false);
             cout << "updated key " + to_string(key) + " and value" + value << endl;
-            if (bufferSize == BUFFER_SIZE) {
-                buffer.flush();
+            if (buffer.currentSize == BUFFER_SIZE) {
+                // buffer.flush();
                 buffer.currentSize = 0;
                 flushed = true;
 
@@ -135,7 +141,7 @@ void driverLeveling(int operation, int key = 0, string value = "", int targetKey
                 int numOfLevels = lsm.LSMLevel.size();
                 for (int i = 0; i < numOfLevels; i++){
                     if (lsm.LSMLevel[i].totalNumberOfPairs >= (Q * (T^i))){
-                        // lsm.flushLevel(i);
+                        lsm.flushLevel(i);
                     } else {
                         break;
                     }
@@ -147,8 +153,8 @@ void driverLeveling(int operation, int key = 0, string value = "", int targetKey
         case 2: {
             buffer.insert(key, "", true);
             cout << "deleted key " + to_string(key) << endl;
-            if (bufferSize == BUFFER_SIZE) {
-                buffer.flush();
+            if (buffer.currentSize == BUFFER_SIZE) {
+                // buffer.flush();
                 buffer.currentSize = 0;
                 flushed = true;
 
@@ -157,7 +163,7 @@ void driverLeveling(int operation, int key = 0, string value = "", int targetKey
                 int numOfLevels = lsm.LSMLevel.size();
                 for (int i = 0; i < numOfLevels; i++){
                     if (lsm.LSMLevel[i].totalNumberOfPairs >= (Q * (T^i))){
-                        // lsm.flushLevel(i);
+                        lsm.flushLevel(i);
                     } else {
                         break;
                     }
@@ -215,7 +221,7 @@ void driverTiering(int operation, int key = 0, string value = "", int targetKey 
             buffer.insert(key, value, false);
             cout << "inserted key " + to_string(key) + " and value" + value << endl;
             if (bufferSize == BUFFER_SIZE) {
-                buffer.flush();
+                // buffer.flush();
                 buffer.currentSize = 0;
                 flushed = true;
 
@@ -224,7 +230,7 @@ void driverTiering(int operation, int key = 0, string value = "", int targetKey 
                 int numOfTiers = lsm.LSMTier.size();
                 for (int i = 0; i < numOfTiers; i++){
                     if (lsm.LSMTier[i].totalNumberOfTiers >= T){
-                        // lsm.flushLevel(i);
+                        lsm.flushLevel(i);
                     } else {
                         break;
                     }
@@ -237,7 +243,7 @@ void driverTiering(int operation, int key = 0, string value = "", int targetKey 
             buffer.insert(key, value, false);
             cout << "updated key " + to_string(key) + " and value" + value << endl;
             if (bufferSize == BUFFER_SIZE) {
-                buffer.flush();
+                // buffer.flush();
  
                 buffer.currentSize = 0;
                 flushed = true;
@@ -247,7 +253,7 @@ void driverTiering(int operation, int key = 0, string value = "", int targetKey 
                 int numOfTiers = lsm.LSMTier.size();
                 for (int i = 0; i < numOfTiers; i++){
                     if (lsm.LSMTier[i].totalNumberOfTiers >= T){
-                        // lsm.flushLevel(i);
+                        lsm.flushLevel(i);
                     } else {
                         break;
                     }
@@ -260,7 +266,7 @@ void driverTiering(int operation, int key = 0, string value = "", int targetKey 
             buffer.insert(key, "", true);
             cout << "deleted key " + to_string(key) << endl;
             if (bufferSize == BUFFER_SIZE) {
-                buffer.flush();
+                // buffer.flush();
                 buffer.currentSize = 0;
                 flushed = true;
 
@@ -268,8 +274,8 @@ void driverTiering(int operation, int key = 0, string value = "", int targetKey 
             if (flushed == true){
                 int numOfTiers = lsm.LSMTier.size();
                 for (int i = 0; i < numOfTiers; i++){
-                   if (lsm.LSMTier[i].totalNumberOfTiers >= T){
-                        // lsm.flushLevel(i);
+                    if (lsm.LSMTier[i].totalNumberOfTiers >= T){
+                        lsm.flushLevel(i);
                     } else {
                         break;
                     }
@@ -312,59 +318,61 @@ void driverTiering(int operation, int key = 0, string value = "", int targetKey 
 
 
 int main(int argc, char *argv[]) {
-
     // Explain inputs
     if (argc != 5) {
-    fprintf(stderr,"usage: %s case Q T  pol\n", argv[0]);
-    fprintf(stderr,"\tCase - workload kind can be: Gral, Insert, Update/Del, PointR, RangeR \n");
-    fprintf(stderr,"\tQ - buffer size\n");
-    fprintf(stderr,"\tT - size ratio\n");
-    fprintf(stderr,"\tPol - tiering vs levelling: can be t, l\n");
-    fprintf(stderr,"\te.g. for an insert heavy workload with Q=4 and T=2 on tiering\n\t\t %s Insert 4 2 t\n",argv[0]);
-    exit(1);
+        fprintf(stderr,"usage: %s case Q T  pol\n", argv[0]);
+        fprintf(stderr,"\tCase - workload kind can be: Gral, Insert, Update/Del, PointR, RangeR \n");
+        fprintf(stderr,"\tQ - buffer size\n");
+        fprintf(stderr,"\tT - size ratio\n");
+        fprintf(stderr,"\tPol - tiering vs levelling: can be t, l\n");
+        fprintf(stderr,"\te.g. for an insert heavy workload with Q=4 and T=2 on tiering\n\t\t %s Insert 4 2 t\n",argv[0]);
+        exit(1);
 	}
 
-    string wokload_kind = argv[1];
+    string workload_kind = argv[1];
     int Q = atoi(argv[2]);
     int T = atoi(argv[3]);
     string Policy = argv[4];
 
     // Number of Instructions in Workload
-    int total = 100000;
+    int total = 75;
 
     // Build a workload according to size and kind of workload wanted, store it in workload.txt
-    // buildWorkload(wokload_kind, total);
+    // buildWorkload(workload_kind, total);
 
     // iterate through the workload and process it via driver 
     std::ifstream infile("workload.txt");
     int operation, key1, key2;
     string value;
 
+    buffer.currentSize = 0;
     if (Policy == "t"){
         while (infile >> operation >> key1 >> key2 >> value){
             driverTiering(operation, key1, value, key1, key1, key2, Q, T);
         }
     } else {
+        // puting a level 0, so that we can start with level 1.
+        levelMetadata placeholder = {0, };
+        lsm.LSMLevel.push_back(placeholder);
+        lsm.currentLevel = 1;
         while (infile >> operation >> key1 >> key2 >> value){
             driverLeveling(operation, key1, value, key1, key1, key2, Q, T);        
         }
     }
 
-
-
-
-
+    // vector<KeyValuePair> tmp = buffer.readFile("lsm_data/level_1_file_1.txt");
+    // cout << tmp.size() << endl;
     // 0. preparation
     // 0.1 create a folder for LSM data with read and write privileges
     // if folder exists, recreating won't swipe off files inside and start from scratch
     mkdir("lsm_data/", S_IRWXU); 
     // 0.2 create a manifest file to log LSM execuations
-    FILE *manifest;
-    manifest = fopen ("lsm_data/lsm.meta", "w"); 
-    if (manifest == NULL) {
-        fprintf(stderr, "\nError opend file\n"); 
-        exit (1); 
-    }
+    // FILE *manifest;
+    // manifest = fopen ("main/lsm_data/lsm.meta", "w"); 
+    // if (manifest == NULL) {
+    //     fprintf(stderr, "\nError opend file\n"); 
+    //     exit (1); 
+    // }
     // 0.2.2 allocate space and initialize levelMeta for both approaches
     // KeyValuePair kv[2];
     // kv[0] = (KeyValuePair) {1, "1", true}; 
@@ -387,13 +395,7 @@ int main(int argc, char *argv[]) {
 //######################################################################//
     // LSM lsm;
     // lsm.print_LSM();
-	// BufferClass BC;
-    // BC.insert(300, "3", false);
-    // BC.insert(100, "1", false);
-    // BC.insert(100, "6", false);
-    // BC.insert(200, "2", false);
-    // BC.insert(40, "4", false);
-    // BC.insert(500, "5", false);
+	
     // BC.insert(400, "9", false);
     // BC.insert(700, "50", false);
     // cout << BC.currentSize << endl;
@@ -403,6 +405,12 @@ int main(int argc, char *argv[]) {
     // BC.insert(10, "19", false);
     // BC.insert(10, "10", false);
     // BC.insert(15, "15", false);
+    // buffer.insert(300, "3", false);
+    // buffer.insert(100, "1", false);
+    // buffer.insert(100, "6", false);
+    // buffer.insert(200, "2", false);
+    // buffer.insert(40, "4", false);
+    // buffer.flushLevel(2);
     // BC.printBC();
     // LevelClass lv;
     // lv.currentLevel = 1;
