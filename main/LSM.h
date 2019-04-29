@@ -13,12 +13,14 @@ struct tier {
 struct tierMetadata {
     int levelNumber; // the level height is LSM tree
     vector<tier> tierData;
+    int totalNumberOfTiers;
 };
 
 struct levelMetadata {
     int levelNumber;
     string filename;
     int keyRange[2];
+    int totalNumberOfPairs;
 };
 
 class LSM {
@@ -30,7 +32,9 @@ class LSM {
         vector<string> rangeLookupLevel(int lowerBoundKey, int upperBoundKey);
         string pointLookupTier(int key);
         vector<string> rangeLookupTier(int lowerBoundKey, int upperBoundKey);
-        // void flushLevel()
+        void flushLevel(int level);
+        void flushTier(int level);
+
 
         string searchKeyInFile(string filename, int key);
         vector<KeyValuePair> readKVFromFile(string filename);

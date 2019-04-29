@@ -32,7 +32,7 @@ class BufferClass {
 	public:
                 //TODO: upgrade to skiplist
                 KeyValuePair keyValueArray[BUFFER_SIZE];
-                int currentSize;
+                int currentSize = 0;
 
                 int getCurrentSize();
                 void insert(int key, string value, bool flag);
