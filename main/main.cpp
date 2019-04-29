@@ -71,8 +71,8 @@ void buildWorkload(string wokload_kind, int total){
  * all comments are following https://developer.lsst.io/cpp/api-docs.html standard
  */
 
-vector<levelMeta> getMetadata() {
-    vector<levelMeta> ret;
+vector<levelMetadata> getMetadata() {
+    vector<levelMetadata> ret;
     return ret;
 }
 /**
@@ -93,11 +93,11 @@ LevelClass level;
 LSM lsm;
 void driver(int operation, int key = 0, string value = "", int targetKey = 0, int lowerBound = 0, int upperBound = 0) {
     int bufferSize = buffer.currentSize;
-    vector<levelMeta> levelMetadata = getMetadata();
-    // int totalLevel = levelMetadata.size();
+    vector<levelMetadata> levelMetadata = getMetadata();
+    // int totalLevel = levelMetadatadata.size();
     int currentLevel = 1;
-    levelMeta curLevel = levelMetadata[currentLevel];
     int levelSize = levelMetadata.back().levelNumber;
+    // levelMetadata curLevel = lsm.LSMLevel[levelSize];
     //TODO: runtime for print to substruct from overall runtime?
     switch (operation) {
         //TODO: make these all alive with manifest file
@@ -109,10 +109,10 @@ void driver(int operation, int key = 0, string value = "", int targetKey = 0, in
                 currentLevel += 1;
                 buffer.currentSize = 0;
             }
-            if (curLevel.levelNumber == SIZE_RATIO) {
-                // level.flushLevel(currentLevel);
-                currentLevel += 1;
-            }
+            // if (curLevel.levelNumber == SIZE_RATIO) {
+            //     // level.flushLevel(currentLevel);
+            //     currentLevel += 1;
+            // }
             break;
         }
         case 1: {
@@ -156,7 +156,7 @@ void driver(int operation, int key = 0, string value = "", int targetKey = 0, in
             break;
         }
         case 4: {
-            vector<string> rangeLookup = lsm.rangeLookup(lowerBound, upperBound);
+            vector<string> rangeLookup = lsm.rangeLookupLevel(lowerBound, upperBound);
             if (rangeLookup.size() > 0) {
                 cout << "found: ";
                 for (int i=0; i< rangeLookup.size(); i++) {
@@ -197,15 +197,15 @@ int main(int argc, char *argv[]) {
     int total = 100000;
 
     // Build a workload according to size and kind of workload wanted, store it in workload.txt
-    buildWorkload(wokload_kind, total);
+    // buildWorkload(wokload_kind, total);
 
     // iterate through the workload and process it via driver 
-    std::ifstream infile("workload.txt");
-    int operation, key1, key2;
-    string value;
-    while (infile >> operation >> key1 >> key2 >> value){
-        driver(operation, key1, value, key1, key1, key2);
-    }
+    // std::ifstream infile("workload.txt");
+    // int operation, key1, key2;
+    // string value;
+    // while (infile >> operation >> key1 >> key2 >> value){
+    //     driver(operation, key1, value, key1, key1, key2);
+    // }
 
 
 
@@ -244,12 +244,12 @@ int main(int argc, char *argv[]) {
     // lsm.print_LSM();
 	// BufferClass BC;
     // BC.currentSize = 0;
-    // BC.insert(3, "3", false);
-    // BC.insert(1, "1", false);
-    // BC.insert(6, "6", false);
-    // BC.insert(2, "2", false);
-    // BC.insert(4, "4", false);
-    // BC.insert(5, "5", false);
+    // BC.insert(300, "3", false);
+    // BC.insert(100, "1", false);
+    // BC.insert(600, "6", false);
+    // BC.insert(200, "2", false);
+    // BC.insert(400, "4", false);
+    // BC.insert(500, "5", false);
     // BC.insert(1, "9000", true); //FIXME: bc doesn't handle delete to null
     // BC.insert(7, "7", false);
     // BC.insert(9, "9", false);
@@ -257,18 +257,23 @@ int main(int argc, char *argv[]) {
     // BC.insert(10, "10", false);
     // BC.insert(15, "15", false);
     // BC.printBC();
-    // LevelClass lv;
-    // lv.currentLevel = 1;
-    // lv.generateFilenameList();
-    // vector<KeyValuePair> tmp = lv.leveling();
+    LevelClass lv;
+    lv.currentLevel = 1;
+    lv.currentSize = 0;
+    lv.generateFilenameList();
+    lv.tiering();
+    // lv.printLV();
     // for (int i= 0; i<tmp.size(); i++) {
     //     cout << tmp[i].key << "-" << tmp[i].value << endl;
     // }
-    // lv.printLV();
-    string filename = "lsm_data/level_1_file_1.txt";
+    // string filename = "lsm_data/level_1_file_1.txt";
+    // vector<KeyValuePair> tmp = lv.readFile(filename);
+    bool tmp = lv.currentSize == 20;
+    cout << tmp << ", current size: " << lv.currentLevel << endl;
     // LSM lsm;
     // lsm.allLevel[1] = la;
     // lsm.pointLookup(1);
+    // cout << searchKey(tmp, 19) << endl;
     return 1;
 }
 

@@ -11,6 +11,7 @@ vector<KeyValuePair> LevelClass::sortMerge(vector<KeyValuePair> array1, vector<K
     // Initialize vecture of result
     vector<KeyValuePair> Result(array1.size() + array2.size());
     int i = 0, j = 0, k = 0;
+    int duplicatecount = 0;
     
     // While both arrays have elements left to iterate through, compare the next element in each array and add
     // the one with the smallest key to the result array
@@ -24,17 +25,18 @@ vector<KeyValuePair> LevelClass::sortMerge(vector<KeyValuePair> array1, vector<K
         }
         else if (array1[i].key > array2[j].key) {
             Result[k] = array2[j];
-            levelArray[k] = array1[i];
+            levelArray[k] = array2[j];
             j++;
             k++;
         }
         // If a duplicate is found, add the newest one and ignore the other one
         else{
             Result[k] = array2[j];
-            levelArray[k] = array1[i];
+            levelArray[k] = array2[j];
             i++;
             k++;
             j++;
+            duplicatecount++;
         }
     }
     
@@ -47,12 +49,21 @@ vector<KeyValuePair> LevelClass::sortMerge(vector<KeyValuePair> array1, vector<K
     } 
     while (j < array2.size()){
           Result[k] = array2[j];
-          levelArray[k] = array1[i];
+          levelArray[k] = array2[j];
           j++;
           k++;
     } 
+    //TODO: this is yet to be optimized, but it works, yay!
+    if (duplicatecount > 0) {
+        vector<KeyValuePair> finalRes(Result.size() - duplicatecount); 
+        for (int q = 0; q < finalRes.size(); q++){
+            finalRes[q] = Result[q];
+        }
+        return finalRes;
+    } else {
+        return Result;
+    }
 
-    return Result;
 }
 
 /**
@@ -61,22 +72,23 @@ vector<KeyValuePair> LevelClass::sortMerge(vector<KeyValuePair> array1, vector<K
  * @param void
  * @return void
  */
-vector<KeyValuePair> LevelClass::leveling() {
+vector<KeyValuePair> LevelClass::tiering() {
     int count = 0;
     vector<KeyValuePair> tmp;
-    while (count != SIZE_RATIO) {
+    while (count != SIZE_RATIO + 1) {
         if (count == 0) {
             vector<KeyValuePair> vec1 = readFile(filenameList[count]);
             vector<KeyValuePair> vec2 = readFile(filenameList[count + 1]);
             tmp = sortMerge(vec1, vec2);
+            count = 2;
         }
         else {
             vector<KeyValuePair> vec3 = readFile(filenameList[count]);
             tmp = tmp.size() > 0 ? sortMerge(tmp, vec3) : tmp;
+            count += 1;
         }
-
-        count += 2;
     }
+
     return tmp;
 }
 
@@ -86,7 +98,7 @@ vector<KeyValuePair> LevelClass::leveling() {
  * @param void
  * @return void
  */
-void LevelClass::tiering() {
+void LevelClass::leveling() {
     readFile(filenameList[currentSize / BUFFER_SIZE]);
     vector<KeyValuePair> newTier = readFile(filenameList[currentSize / BUFFER_SIZE]);
     vector<KeyValuePair> curTiers(levelArray, levelArray + currentSize);
@@ -107,8 +119,6 @@ vector<KeyValuePair> LevelClass::readFile(string filepath) {
     bool flag;
     fstream newLevel;
     newLevel.open(filepath);
-    // currentLevel = stoi(string() + filepath.at(15));
-    // currentSize = (stoi(string() + filepath.at(22)) - 1) * BUFFER_SIZE;
     int count = 0;
     while (newLevel >> key >> value >> flag) {
         tmp[count] = (KeyValuePair) {key, value, flag};
@@ -136,7 +146,7 @@ void LevelClass::generateFilenameList() {
     string file_ = "_file_";
     string extension = ".txt";
     for (int i=0; i< SIZE_RATIO; i++) {
-        filenameList[i] = basename + level + file_ + to_string(i+1) + extension;
+        filenameList.push_back(basename + level + file_ + to_string(i+1) + extension);
     }
 }
 
@@ -153,7 +163,7 @@ void LevelClass::printLV() {
 }
 
 /** 
- * \@depricated
+ * @depricated
  * invokes readFile for all data files for a given level
  * 
  * @param void

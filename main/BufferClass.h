@@ -37,6 +37,7 @@ class BufferClass {
                 int getCurrentSize();
                 void insert(int key, string value, bool flag);
                 void flush();
+                
                 void flush2();
                 int explore(const char *dirname);
                 string GetCurrentWorkingDir();

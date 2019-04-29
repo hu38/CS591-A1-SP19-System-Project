@@ -11,16 +11,17 @@ const int SIZE_RATIO = 4;
 
 class LevelClass {
     public:
-        string filenameList[SIZE_RATIO];
+        vector<string> filenameList;
         KeyValuePair levelArray[BUFFER_SIZE * SIZE_RATIO];
         int currentSize;
         int currentLevel;
 
-        vector<KeyValuePair> leveling();
-        void tiering();
+        vector<KeyValuePair> tiering();
+        void leveling();
         vector<KeyValuePair> sortMerge(vector<KeyValuePair> array1, vector<KeyValuePair> array2);
         vector<KeyValuePair> readFile(string filename);
         void flushLevel(int currentLevel);
+
         void printLV();
         void generateFilenameList();
         void combineLevelArrays();

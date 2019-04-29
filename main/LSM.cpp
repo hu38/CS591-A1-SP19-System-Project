@@ -73,19 +73,54 @@ string LSM::pointLookupTier(int key) {
  * @param[upperBoundKey:required] the largest key whose value will be returned 
  * @return a vector of values in form of string
  */
-vector<string> LSM::rangeLookupLevel(int lowerBoundKey, int upperBoundKey) {
+vector<string> LSM::rangeLookupTier(int lowerBoundKey, int upperBoundKey) {
+    // 1. get the potential level's filenames - constant time k
+    vector<string> filenames;
+    for (int levelNumber = 0; levelNumber < LSMTier.size(); levelNumber++) {
+        tierMetadata curLevel = LSMTier[levelNumber];
+        for (int tierNumber = 0; tierNumber < curLevel.tierData.size(); tierNumber++) {
+            tier curTier = curLevel.tierData[tierNumber];
+            if (lowerBoundKey >= curTier.keyRange[0] or upperBoundKey < curTier.keyRange[1]) {
+                filenames.push_back(curTier.filename);
+            }
+        }
+    }
+
+    // 2. combine all KeyValuePairs and then sort merge them - O(logN * logN)
+    LevelClass lv;
+    int count = 0;
+    vector<KeyValuePair> tmp;
+    while (count != filenames.size()) {
+        if (count == 0) {
+            vector<KeyValuePair> vec1 = lv.readFile(filenames[count]);
+            vector<KeyValuePair> vec2 = lv.readFile(filenames[count + 1]);
+            tmp = lv.sortMerge(vec1, vec2);
+        }
+        else {
+            vector<KeyValuePair> vec3 = lv.readFile(filenames[count]);
+            tmp = tmp.size() > 0 ? lv.sortMerge(tmp, vec3) : tmp;
+        }
+
+        count += 2;
+    }
+
+    // 3. search lowerbound - O(logN) + keep appending values to ret until upperBound - O(n)
     vector<string> ret;
-    /**
-     * find the potential levels - k
-     * search the key within each level
-     */
+    int lowerBoundIndex = searchKey(tmp, lowerBoundKey);
+    for (int i=lowerBoundIndex; i<tmp.size(); i++) {
+        if (tmp[i].key != upperBoundKey) ret.push_back(tmp[i].value);
+    }
+
+    return ret;
+}
 
 
+vector<string> LSM::rangeLookupLevel(int lowerBoundKey, int upperBoundKey) {
     // 1. get the potential level's filenames - constant time k
     vector<string> filenames;
     for (int levelNumber = 0; levelNumber < LSMLevel.size(); levelNumber++) {
         levelMetadata curLevel = LSMLevel[levelNumber];
-        if (upperBoundKey >= curLevel.keyRange[0] and upperBoundKey < curLevel.keyRange[1]) {
+        if (lowerBoundKey >= curLevel.keyRange[0] or upperBoundKey < curLevel.keyRange[1]) {
             filenames.push_back(curLevel.filename);
         }
     }
@@ -94,14 +129,14 @@ vector<string> LSM::rangeLookupLevel(int lowerBoundKey, int upperBoundKey) {
     LevelClass lv;
     int count = 0;
     vector<KeyValuePair> tmp;
-    while (count != ret.size()) {
+    while (count != filenames.size()) {
         if (count == 0) {
-            vector<KeyValuePair> vec1 = lv.readFile(ret[count]);
-            vector<KeyValuePair> vec2 = lv.readFile(ret[count + 1]);
+            vector<KeyValuePair> vec1 = lv.readFile(filenames[count]);
+            vector<KeyValuePair> vec2 = lv.readFile(filenames[count + 1]);
             tmp = lv.sortMerge(vec1, vec2);
         }
         else {
-            vector<KeyValuePair> vec3 = lv.readFile(ret[count]);
+            vector<KeyValuePair> vec3 = lv.readFile(filenames[count]);
             tmp = tmp.size() > 0 ? lv.sortMerge(tmp, vec3) : tmp;
         }
 
@@ -109,16 +144,14 @@ vector<string> LSM::rangeLookupLevel(int lowerBoundKey, int upperBoundKey) {
     }
 
     // 3. search lowerbound - O(logN) + keep appending values to ret until upperBound - O(n)
-    for (int i = 0; i < tmp.size(); i++) {
-        if (tmp[i].key == lowerBoundKey) {
-            
-        }
+    vector<string> ret;
+    int lowerBoundIndex = searchKey(tmp, lowerBoundKey);
+    for (int i=lowerBoundIndex; i<tmp.size(); i++) {
+        if (tmp[i].key != upperBoundKey) ret.push_back(tmp[i].value);
     }
-
 
     return ret;
 }
-
 
 /**
  * prints out the entire LSM-Tree
@@ -143,7 +176,7 @@ void LSM::print_LSM() {
  * @return the value of a given key in form of string if found, else empty string
  * @see https://academy.realm.io/posts/how-we-beat-cpp-stl-binary-search/
  */
-string LSM::searchKey(vector<KeyValuePair> vec, int key) {
+int LSM::searchKey(vector<KeyValuePair> vec, int key) {
     int size = vec.size();
     int low = 0;
     
@@ -154,10 +187,10 @@ string LSM::searchKey(vector<KeyValuePair> vec, int key) {
         int other_low = low + other_half; // low index of second half
         KeyValuePair tmp = vec[curIndex];
         int curKey = tmp.key;
-        if (curKey == key) return tmp.value;
+        if (curKey == key) return curIndex;
         size = half;
         low = curKey < key ? other_low : low;
     }
     
-    return "";
+    return low;
 }
