@@ -158,7 +158,7 @@ bool LSM::checkFlushTier(int levelNumber) {
 }
 
 bool LSM::checkFlushLevel(int levelNumber) {
-    return (LSMLevel[levelNumber].totalLevel >= (pow(SIZE_RATIO, levelNumber) * BUFFER_SIZE)) ? true : false;
+    return (LSMLevel[levelNumber].totalNumberOfPairs >= (pow(SIZE_RATIO, levelNumber) * BUFFER_SIZE)) ? true : false;
 }
 
 void LSM::flushLevel(int levelNumber) {

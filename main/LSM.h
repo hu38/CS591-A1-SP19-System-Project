@@ -14,13 +14,14 @@ struct tier {
 struct tierMetadata {
     int levelNumber; // the level height is LSM tree
     vector<tier> tierData;
+    int totalNumberOfTiers;
 };
 
 struct levelMetadata {
     int levelNumber;
     string filename;
-    int keyRange[2];   
-    int totalLevel; 
+    int keyRange[2];
+    int totalNumberOfPairs;
 };
 
 class LSM {
