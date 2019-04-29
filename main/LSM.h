@@ -35,7 +35,8 @@ class LSM {
         vector<string> rangeLookupTier(int lowerBoundKey, int upperBoundKey);
         bool checkFlushLevel(int levelNumber);
         bool checkFlushTier(int levelNumber);
-        void flushLevel(int levelNumber);
+        void flushLevel(int currentLevel);
+        vector<KeyValuePair> flushTier(int currentLevel);
 
         string searchKeyInFile(string filename, int key);
         vector<KeyValuePair> readKVFromFile(string filename);

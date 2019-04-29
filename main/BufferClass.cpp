@@ -10,7 +10,6 @@ using namespace std;
  * @return no returns, simply updates the buffer 
  */
 void BufferClass::insert(int key, string value, bool flag) { 
-    // cout << "SIZE BEFORE "<< currentSize << endl;
     // for the first element, simply add it to position 0 and increase the current size
     if (currentSize == 0){
          keyValueArray[0] = (KeyValuePair) {key, value, flag};
@@ -39,12 +38,7 @@ void BufferClass::insert(int key, string value, bool flag) {
             }
         }
     }
-    // if the current size reaches the limit, flush the buffer and restart the counters
-    if (currentSize == BUFFER_SIZE){
-        cout << " FLUSH " << endl;
-        flush();
-    }
-    // cout << "SIZE AFTER "<< currentSize << endl;
+    // if the current size reaches the limit, flush in driver
 }
 
 /**

@@ -130,7 +130,7 @@ void driver(int operation, int key = 0, string value = "", int targetKey = 0, in
             break;
         }
         case 2: {
-            buffer.insert(key, NULL, true); //FIXME:
+            buffer.insert(key, value, true);
             cout << "deleted key " + to_string(key) << endl;
             if (bufferSize == BUFFER_SIZE) {
                 buffer.flush();
@@ -242,7 +242,7 @@ int main(int argc, char *argv[]) {
 //######################################################################//
     // LSM lsm;
     // lsm.print_LSM();
-	BufferClass BC;
+	// BufferClass BC;
     // BC.insert(300, "3", false);
     // BC.insert(100, "1", false);
     // BC.insert(100, "6", false);
@@ -252,13 +252,13 @@ int main(int argc, char *argv[]) {
     // BC.insert(400, "9", false);
     // BC.insert(700, "50", false);
     // cout << BC.currentSize << endl;
-    // BC.insert(1, "9000", true); //FIXME: bc doesn't handle delete to null
+    // BC.insert(1, "9000", true);
     // BC.insert(7, "7", false);
     // BC.insert(9, "9", false);
     // BC.insert(10, "19", false);
     // BC.insert(10, "10", false);
     // BC.insert(15, "15", false);
-    BC.printBC();
+    // BC.printBC();
     // LevelClass lv;
     // lv.currentLevel = 1;
     // lv.currentSize = 0;

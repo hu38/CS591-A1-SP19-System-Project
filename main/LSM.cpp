@@ -161,23 +161,28 @@ bool LSM::checkFlushLevel(int levelNumber) {
     return (LSMLevel[levelNumber].totalLevel >= (pow(SIZE_RATIO, levelNumber) * BUFFER_SIZE)) ? true : false;
 }
 
-vector<KeyValuePair> LSM::flushLevel(int levelNumber) {
+void LSM::flushLevel(int levelNumber) {
     LevelClass lv;
+    // read and remove current level's data/file
     string originalFilename = "lsm_data/level_" + to_string(levelNumber) + "_file_1.txt";
     vector<KeyValuePair> tmp = lv.readFile(originalFilename);
     char *fileToDelete = &originalFilename[0u];
     remove(fileToDelete);
-    int key;
-    string value;
-    bool flag;
+    // sort-merge the flushed data with the next level if there is data
     string newFilename = "lsm_data/level_" + to_string(levelNumber + 1) + "_file_1.txt";
+    vector<KeyValuePair> tmp2 = lv.readFile(newFilename);
+    if (tmp2.size() > 0) {
+        tmp2 = lv.sortMerge(tmp, tmp2);
+    }
+    // write to the next level's file
     std::ofstream targetFile (newFilename);
-    for (int i=0; i < BUFFER_SIZE ; i++) {
+    for (int i=0; i < tmp2.size() ; i++) {
+        int key = tmp2[i].key;
+        string value = tmp2[i].value;
+        bool flag = tmp2[i].flag;
         targetFile << key << " " << value << " " << flag << "\n";
     }
     targetFile.close();
-
-    return tmp;
 }
 
 vector<KeyValuePair> LSM::flushTier(int levelNumber) {
@@ -190,12 +195,14 @@ vector<KeyValuePair> LSM::flushTier(int levelNumber) {
         char *fileToDelete = &originalFilename[0u];
         remove(fileToDelete);
     }
-    int key;
-    string value;
-    bool flag;
-    string newFilename = "lsm_data/level_" + to_string(levelNumber + 1) + "_file_1.txt";
+    // write to the next level's next file
+    int nextPage = LSMTier[levelNumber].tierData.size() + 1;
+    string newFilename = "lsm_data/level_" + to_string(levelNumber + 1) + "_file_" + to_string(nextPage) + ".txt";
     std::ofstream targetFile (newFilename);
     for (int i=0; i < BUFFER_SIZE ; i++) {
+        int key = tmp[i].key;
+        string value = tmp[i].value;
+        bool flag = tmp[i].flag;
         targetFile << key << " " << value << " " << flag << "\n";
     }
     targetFile.close();
