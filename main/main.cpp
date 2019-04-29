@@ -87,234 +87,255 @@ void buildWorkload(string workload_kind, int total){
  */
 //FIXME: 
 
-BufferClass buffer;
-LevelClass level;
-LSM lsm;
 
-void driverLeveling(int operation, int key = 0, string value = "", int targetKey = 0, int lowerBound = 0, int upperBound = 0, int Q =0, int T = 0) {
-    // int bufferSize = buffer.currentSize;
-    bool flushed = false;
-    vector<levelMetadata> currentLSM = lsm.LSMLevel;
-    // vector<levelMetadata> levelMetadata = getMetadata();
-    //TODO: runtime for print to substruct from overall runtime? + add timer
-    switch (operation) {
-        //TODO: make these all alive with manifest file
-        case 0: {
-            cout << "i'm inserting key " << key << " and value " << value << endl;
-            buffer.insert(key, value, false);
-            if (buffer.currentSize == BUFFER_SIZE) {
-                string newFilename = buffer.flushLevel(currentLSM.size() + 1);
-                int ranges[] = {buffer.smallest, buffer.largest};
-                levelMetadata newPage = {lsm.currentLevel, newFilename, *ranges, 1};
-                newPage.totalNumberOfPairs = buffer.totalNonDup;
-                currentLSM.push_back(newPage);
-                lsm.currentLevel++;
-                buffer.totalNonDup = 0;
-                int levelSize = currentLSM[lsm.currentLevel].totalNumberOfPairs;
-                //     cout << currentLSM[i].filename << endl;
-                //     if (kv.size() >= (Q * pow(T, lsm.currentLevel))) {
-                //         cout << "we should have a new level" << endl;
-                //         lsm.currentLevel --;
-                //     }
-                //     if (currentLSM[i].totalNumberOfPairs >= (Q * (T^i))){
-                //         lsm.flushLevel(i);
-                //         lsm.currentLevel ++;
-                //         cout << "new level: " << lsm.currentLevel << endl;
-                //     } else {
-                //         cout << "here!" << endl;
-                //         break;
-                //     }
-            }
+
+// void driverLeveling(int operation, int key = 0, string value = "", int targetKey = 0, int lowerBound = 0, int upperBound = 0, int Q =0, int T = 0) {
+//     // int bufferSize = buffer.currentSize;
+//     bool flushed = false;
+//     vector<levelMetadata> currentLSM = lsm.LSMLevel;
+//     // vector<levelMetadata> levelMetadata = getMetadata();
+//     //TODO: runtime for print to substruct from overall runtime? + add timer
+//     switch (operation) {
+//         //TODO: make these all alive with manifest file
+//         case 0: {
+//             cout << "i'm inserting key " << key << " and value " << value << endl;
+//             buffer.insert(key, value, false);
+//             if (buffer.currentSize == BUFFER_SIZE) {
+//                 string newFilename = buffer.flushLevel(currentLSM.size() + 1);
+//                 int ranges[] = {buffer.smallest, buffer.largest};
+//                 levelMetadata newPage = {lsm.currentLevel, newFilename, *ranges, 1};
+//                 newPage.totalNumberOfPairs = buffer.totalNonDup;
+//                 currentLSM.push_back(newPage);
+//                 lsm.currentLevel++;
+//                 buffer.totalNonDup = 0;
+//                 int levelSize = currentLSM[lsm.currentLevel].totalNumberOfPairs;
+//                 //     cout << currentLSM[i].filename << endl;
+//                 //     if (kv.size() >= (Q * pow(T, lsm.currentLevel))) {
+//                 //         cout << "we should have a new level" << endl;
+//                 //         lsm.currentLevel --;
+//                 //     }
+//                 //     if (currentLSM[i].totalNumberOfPairs >= (Q * (T^i))){
+//                 //         lsm.flushLevel(i);
+//                 //         lsm.currentLevel ++;
+//                 //         cout << "new level: " << lsm.currentLevel << endl;
+//                 //     } else {
+//                 //         cout << "here!" << endl;
+//                 //         break;
+//                 //     }
+//             }
             
-            break;
-        }
-        case 1: {
-            buffer.insert(key, value, false);
-            cout << "updated key " + to_string(key) + " and value" + value << endl;
-            if (buffer.currentSize == BUFFER_SIZE) {
-                // buffer.flush();
-                buffer.currentSize = 0;
-                flushed = true;
+//             break;
+//         }
+//         case 1: {
+//             buffer.insert(key, value, false);
+//             cout << "updated key " + to_string(key) + " and value" + value << endl;
+//             if (buffer.currentSize == BUFFER_SIZE) {
+//                 // buffer.flush();
+//                 buffer.currentSize = 0;
+//                 flushed = true;
 
-            }
-            if (flushed == true){
-                int numOfLevels = lsm.LSMLevel.size();
-                for (int i = 0; i < numOfLevels; i++){
-                    if (lsm.LSMLevel[i].totalNumberOfPairs >= (Q * (T^i))){
-                        lsm.flushLevel(i);
-                    } else {
-                        break;
-                    }
-                }
-            }
+//             }
+//             if (flushed == true){
+//                 int numOfLevels = lsm.LSMLevel.size();
+//                 for (int i = 0; i < numOfLevels; i++){
+//                     if (lsm.LSMLevel[i].totalNumberOfPairs >= (Q * (T^i))){
+//                         lsm.flushLevel(i);
+//                     } else {
+//                         break;
+//                     }
+//                 }
+//             }
             
-            break;
-        }
-        case 2: {
-            buffer.insert(key, "", true);
-            cout << "deleted key " + to_string(key) << endl;
-            if (buffer.currentSize == BUFFER_SIZE) {
-                // buffer.flush();
-                buffer.currentSize = 0;
-                flushed = true;
+//             break;
+//         }
+//         case 2: {
+//             buffer.insert(key, "", true);
+//             cout << "deleted key " + to_string(key) << endl;
+//             if (buffer.currentSize == BUFFER_SIZE) {
+//                 // buffer.flush();
+//                 buffer.currentSize = 0;
+//                 flushed = true;
 
-            }
-            if (flushed == true){
-                int numOfLevels = lsm.LSMLevel.size();
-                for (int i = 0; i < numOfLevels; i++){
-                    if (lsm.LSMLevel[i].totalNumberOfPairs >= (Q * (T^i))){
-                        lsm.flushLevel(i);
-                    } else {
-                        break;
-                    }
-                }
-            }
+//             }
+//             if (flushed == true){
+//                 int numOfLevels = lsm.LSMLevel.size();
+//                 for (int i = 0; i < numOfLevels; i++){
+//                     if (lsm.LSMLevel[i].totalNumberOfPairs >= (Q * (T^i))){
+//                         lsm.flushLevel(i);
+//                     } else {
+//                         break;
+//                     }
+//                 }
+//             }
             
-            break;
-        }
-        case 3: {
-            string pointLookup = buffer.searchKeyInBuffer(targetKey);
-            if (pointLookup != "") 
-                cout << "found key " + to_string(targetKey) + "'s value as " + pointLookup  << endl;
-            else if (lsm.pointLookupLevel(targetKey) != "") {
-                pointLookup = lsm.pointLookupLevel(targetKey);
-                cout << "found key " + to_string(targetKey) + "'s value as " + pointLookup  << endl;
-            } else {
-                cout << "key not found"  << endl;
-            }
-            break;
-        }
-        case 4: {
-            vector<string> rangeLookup = lsm.rangeLookupLevel(lowerBound, upperBound);
-            if (rangeLookup.size() > 0) {
-                cout << "found: ";
-                for (int i=0; i< rangeLookup.size(); i++) {
-                    cout << rangeLookup[i];
-                }
-                cout << endl;
-            }
-            else {
-                cout << "key not found"  << endl;
-            }
-            break;
-        }
-        default: {
-            cout << "requested operation code " << to_string(operation) << " not found" << endl; 
-        }
-    }
-}
+//             break;
+//         }
+//         case 3: {
+//             string pointLookup = buffer.searchKeyInBuffer(targetKey);
+//             if (pointLookup != "") 
+//                 cout << "found key " + to_string(targetKey) + "'s value as " + pointLookup  << endl;
+//             else if (lsm.pointLookupLevel(targetKey) != "") {
+//                 pointLookup = lsm.pointLookupLevel(targetKey);
+//                 cout << "found key " + to_string(targetKey) + "'s value as " + pointLookup  << endl;
+//             } else {
+//                 cout << "key not found"  << endl;
+//             }
+//             break;
+//         }
+//         case 4: {
+//             vector<string> rangeLookup = lsm.rangeLookupLevel(lowerBound, upperBound);
+//             if (rangeLookup.size() > 0) {
+//                 cout << "found: ";
+//                 for (int i=0; i< rangeLookup.size(); i++) {
+//                     cout << rangeLookup[i];
+//                 }
+//                 cout << endl;
+//             }
+//             else {
+//                 cout << "key not found"  << endl;
+//             }
+//             break;
+//         }
+//         default: {
+//             cout << "requested operation code " << to_string(operation) << " not found" << endl; 
+//         }
+//     }
+// }
 
-void driverTiering(int operation, int key = 0, string value = "", int targetKey = 0, int lowerBound = 0, int upperBound = 0, int Q = 0, int T= 0) {
-    int bufferSize = buffer.currentSize;
-    bool flushed = false;
+// LSM driverTiering(int operation, int key = 0, string value = "", int targetKey = 0, int lowerBound = 0, int upperBound = 0, int Q = 0, int T= 0, LSM lsm) {
+//     int bufferSize = buffer.currentSize;
+//     bool flushed = false;
 
-
-    // vector<levelMeta> levelMetadata = getMetadata();
-    // // int totalLevel = levelMetadata.size();
-    // int currentLevel = 1;
-    // levelMeta curLevel = levelMetadata[currentLevel];
-    // int levelSize = levelMetadata.back().levelNumber;
-    //TODO: runtime for print to substruct from overall runtime?
-    switch (operation) {
-        //TODO: make these all alive with manifest file
-        case 0: {
-            buffer.insert(key, value, false);
-            cout << "inserted key " + to_string(key) + " and value" + value << endl;
-            if (bufferSize == BUFFER_SIZE) {
-                // buffer.flush();
-                buffer.currentSize = 0;
-                flushed = true;
-
-            }
-            if (flushed == true){
-                int numOfTiers = lsm.LSMTier.size();
-                for (int i = 0; i < numOfTiers; i++){
-                    if (lsm.LSMTier[i].totalNumberOfTiers >= T){
-                        lsm.flushLevel(i);
-                    } else {
-                        break;
-                    }
-                }
-            }
+//     // vector<levelMeta> levelMetadata = getMetadata();
+//     // // int totalLevel = levelMetadata.size();
+//     // int currentLevel = 1;
+//     // levelMeta curLevel = levelMetadata[currentLevel];
+//     // int levelSize = levelMetadata.back().levelNumber;
+//     //TODO: runtime for print to substruct from overall runtime?
+//     switch (operation) {
+//         //TODO: make these all alive with manifest file
+//                 // string newFilename = buffer.flushLevel(currentLSM.size() + 1);
+//                 // int ranges[] = {buffer.smallest, buffer.largest};
+//                 // levelMetadata newPage = {lsm.currentLevel, newFilename, *ranges, 1};
+//                 // newPage.totalNumberOfPairs = buffer.totalNonDup;
+//                 // currentLSM.push_back(newPage);
+//                 // lsm.currentLevel++;
+//                 // buffer.totalNonDup = 0;
+//                 // int levelSize = currentLSM[lsm.currentLevel].totalNumberOfPairs;
+//                 //     cout << currentLSM[i].filename << endl;
+//                 //     if (kv.size() >= (Q * pow(T, lsm.currentLevel))) {
+//                 //         cout << "we should have a new level" << endl;
+//                 //         lsm.currentLevel --;
+//                 //     }
+//                 //     if (currentLSM[i].totalNumberOfPairs >= (Q * (T^i))){
+//                 //         lsm.flushLevel(i);
+//                 //         lsm.currentLevel ++;
+//                 //         cout << "new level: " << lsm.currentLevel << endl;
+//                 //     } else {
+//                 //         cout << "here!" << endl;
+//                 //         break;
+//                 //     }
+//             }
             
-            break;
-        }
-        case 1: {
-            buffer.insert(key, value, false);
-            cout << "updated key " + to_string(key) + " and value" + value << endl;
-            if (bufferSize == BUFFER_SIZE) {
-                // buffer.flush();
+//             break;
+//         case 0: {
+//             buffer.insert(key, value, false);
+//             cout << "inserted key " + to_string(key) + " and value" + value << endl;
+//             if (bufferSize == BUFFER_SIZE) {
+//                 // buffer.flush();
+//                 buffer.currentSize = 0;
+//                 flushed = true;
+
+//             }
+//             if (flushed == true){
+//                 int numOfTiers = lsm.LSMTier.size();
+//                 for (int i = 0; i < numOfTiers; i++){
+//                     if (lsm.LSMTier[i].totalNumberOfTiers >= T){
+//                         lsm.flushLevel(i);
+//                     } else {
+//                         break;
+//                     }
+//                 }
+//             }
+            
+//             break;
+//         }
+//         case 1: {
+//             buffer.insert(key, value, false);
+//             cout << "updated key " + to_string(key) + " and value" + value << endl;
+//             if (bufferSize == BUFFER_SIZE) {
+//                 // buffer.flush();
  
-                buffer.currentSize = 0;
-                flushed = true;
+//                 buffer.currentSize = 0;
+//                 flushed = true;
 
-            }
-            if (flushed == true){
-                int numOfTiers = lsm.LSMTier.size();
-                for (int i = 0; i < numOfTiers; i++){
-                    if (lsm.LSMTier[i].totalNumberOfTiers >= T){
-                        lsm.flushLevel(i);
-                    } else {
-                        break;
-                    }
-                }
-            }
+//             }
+//             if (flushed == true){
+//                 int numOfTiers = lsm.LSMTier.size();
+//                 for (int i = 0; i < numOfTiers; i++){
+//                     if (lsm.LSMTier[i].totalNumberOfTiers >= T){
+//                         lsm.flushLevel(i);
+//                     } else {
+//                         break;
+//                     }
+//                 }
+//             }
             
-            break;
-        }
-        case 2: {
-            buffer.insert(key, "", true);
-            cout << "deleted key " + to_string(key) << endl;
-            if (bufferSize == BUFFER_SIZE) {
-                // buffer.flush();
-                buffer.currentSize = 0;
-                flushed = true;
+//             break;
+//         }
+//         case 2: {
+//             buffer.insert(key, "", true);
+//             cout << "deleted key " + to_string(key) << endl;
+//             if (bufferSize == BUFFER_SIZE) {
+//                 // buffer.flush();
+//                 buffer.currentSize = 0;
+//                 flushed = true;
 
-            }
-            if (flushed == true){
-                int numOfTiers = lsm.LSMTier.size();
-                for (int i = 0; i < numOfTiers; i++){
-                    if (lsm.LSMTier[i].totalNumberOfTiers >= T){
-                        lsm.flushLevel(i);
-                    } else {
-                        break;
-                    }
-                }
-            }
+//             }
+//             if (flushed == true){
+//                 int numOfTiers = lsm.LSMTier.size();
+//                 for (int i = 0; i < numOfTiers; i++){
+//                     if (lsm.LSMTier[i].totalNumberOfTiers >= T){
+//                         lsm.flushLevel(i);
+//                     } else {
+//                         break;
+//                     }
+//                 }
+//             }
             
-            break;
-        }
-        case 3: {
-            string pointLookup = buffer.searchKeyInBuffer(targetKey);
-            if (pointLookup != "") 
-                cout << "found key " + to_string(targetKey) + "'s value as " + pointLookup  << endl;
-            else if (lsm.pointLookupLevel(targetKey) != "") {
-                pointLookup = lsm.pointLookupLevel(targetKey);
-                cout << "found key " + to_string(targetKey) + "'s value as " + pointLookup  << endl;
-            } else {
-                cout << "key not found"  << endl;
-            }
-            break;
-        }
-        case 4: {
-            vector<string> rangeLookup = lsm.rangeLookupTier(lowerBound, upperBound);
-            if (rangeLookup.size() > 0) {
-                cout << "found: ";
-                for (int i=0; i< rangeLookup.size(); i++) {
-                    cout << rangeLookup[i];
-                }
-                cout << endl;
-            }
-            else {
-                cout << "key not found"  << endl;
-            }
-            break;
-        }
-        default: {
-            cout << "requested operation code " << to_string(operation) << " not found" << endl; 
-        }
-    }
-}
+//             break;
+//         }
+//         case 3: {
+//             string pointLookup = buffer.searchKeyInBuffer(targetKey);
+//             if (pointLookup != "") 
+//                 cout << "found key " + to_string(targetKey) + "'s value as " + pointLookup  << endl;
+//             else if (lsm.pointLookupLevel(targetKey) != "") {
+//                 pointLookup = lsm.pointLookupLevel(targetKey);
+//                 cout << "found key " + to_string(targetKey) + "'s value as " + pointLookup  << endl;
+//             } else {
+//                 cout << "key not found"  << endl;
+//             }
+//             break;
+//         }
+//         case 4: {
+//             vector<string> rangeLookup = lsm.rangeLookupTier(lowerBound, upperBound);
+//             if (rangeLookup.size() > 0) {
+//                 cout << "found: ";
+//                 for (int i=0; i< rangeLookup.size(); i++) {
+//                     cout << rangeLookup[i];
+//                 }
+//                 cout << endl;
+//             }
+//             else {
+//                 cout << "key not found"  << endl;
+//             }
+//             break;
+//         }
+//         default: {
+//             cout << "requested operation code " << to_string(operation) << " not found" << endl; 
+//         }
+//     }
+// }
 
 
 int main(int argc, char *argv[]) {
@@ -334,30 +355,35 @@ int main(int argc, char *argv[]) {
     int T = atoi(argv[3]);
     string Policy = argv[4];
 
+    BufferClass buffer;
+    LevelClass level;
+    LSM lsm;
+
     // Number of Instructions in Workload
-    int total = 75;
+    int total = 12;
 
     // Build a workload according to size and kind of workload wanted, store it in workload.txt
-    // buildWorkload(workload_kind, total);
+    //buildWorkload(workload_kind, total);
 
     // iterate through the workload and process it via driver 
     std::ifstream infile("workload.txt");
     int operation, key1, key2;
     string value;
 
-    buffer.currentSize = 0;
     if (Policy == "t"){
         while (infile >> operation >> key1 >> key2 >> value){
-            driverTiering(operation, key1, value, key1, key1, key2, Q, T);
+            lsm.driverTiering(operation, key1, value, key1, key1, key2, Q, T);
         }
     } else {
-        // puting a level 0, so that we can start with level 1.
-        levelMetadata placeholder = {0, };
-        lsm.LSMLevel.push_back(placeholder);
-        lsm.currentLevel = 1;
-        while (infile >> operation >> key1 >> key2 >> value){
-            driverLeveling(operation, key1, value, key1, key1, key2, Q, T);        
-        }
+
+        cout << "p";
+        // // puting a level 0, so that we can start with level 1.
+        // levelMetadata placeholder = {0, };
+        // lsm.LSMLevel.push_back(placeholder);
+        // lsm.currentLevel = 1;
+        // while (infile >> operation >> key1 >> key2 >> value){
+        //     lsm.driverLeveling(operation, key1, value, key1, key1, key2, Q, T, lsm);        
+        //}
     }
 
     // vector<KeyValuePair> tmp = buffer.readFile("lsm_data/level_1_file_1.txt");

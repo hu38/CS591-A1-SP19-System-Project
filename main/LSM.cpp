@@ -30,6 +30,9 @@ string LSM::searchKeyInFile(string filename, int targetKey) {
  * @param[key:required] key to lookup in all levels
  * @return value of the key if key exists, or an error message elsewise
  */
+
+
+
 string LSM::pointLookupLevel(int key) {
     for (int levelNumber = 0; levelNumber < LSMLevel.size(); levelNumber++) {
         levelMetadata curLevel = LSMLevel[levelNumber];
@@ -253,3 +256,159 @@ int LSM::searchKey(vector<KeyValuePair> vec, int key) {
     
     return low;
 }
+
+
+
+void LSM::driverTiering(int operation, int key, string value, int targetKey, int lowerBound, int upperBound, int Q, int T) {
+    int bufferSize = buffer.currentSize;
+    bool flushed = false;
+
+    // vector<levelMeta> levelMetadata = getMetadata();
+    // // int totalLevel = levelMetadata.size();
+    // int currentLevel = 1;
+    // levelMeta curLevel = levelMetadata[currentLevel];
+    // int levelSize = levelMetadata.back().levelNumber;
+    //TODO: runtime for print to substruct from overall runtime?
+    switch (operation) {
+        //TODO: make these all alive with manifest file
+                // string newFilename = buffer.flushLevel(currentLSM.size() + 1);
+                // int ranges[] = {buffer.smallest, buffer.largest};
+                // levelMetadata newPage = {lsm.currentLevel, newFilename, *ranges, 1};
+                // newPage.totalNumberOfPairs = buffer.totalNonDup;
+                // currentLSM.push_back(newPage);
+                // lsm.currentLevel++;
+                // buffer.totalNonDup = 0;
+                // int levelSize = currentLSM[lsm.currentLevel].totalNumberOfPairs;
+                //     cout << currentLSM[i].filename << endl;
+                //     if (kv.size() >= (Q * pow(T, lsm.currentLevel))) {
+                //         cout << "we should have a new level" << endl;
+                //         lsm.currentLevel --;
+                //     }
+                //     if (currentLSM[i].totalNumberOfPairs >= (Q * (T^i))){
+                //         lsm.flushLevel(i);
+                //         lsm.currentLevel ++;
+                //         cout << "new level: " << lsm.currentLevel << endl;
+                //     } else {
+                //         cout << "here!" << endl;
+                //         break;
+                //     }
+            //}
+            
+            //break;
+        case 0: {
+            buffer.insert(key, value, false);
+            bufferSize ++;
+            //cout << "inserted key " + to_string(key) + " and value " + value << endl;
+            cout <<  " Buffer Size " + to_string(bufferSize) << endl;
+            cout << to_string(bufferSize == BUFFER_SIZE) << endl;
+            if (bufferSize == BUFFER_SIZE) {
+                cout<<  " FLUSH Size " + to_string(bufferSize) << endl;
+                string newfile = buffer.flushTier(LSMTier.size());
+                insertTier(newfile, 1);
+
+
+
+                buffer.currentSize = 0;
+                int numOfTiers = LSMTier.size();
+
+                for (int i = 0; i < numOfTiers; i++){
+                    if (LSMTier[i].totalNumberOfTiers >= T){
+                        insertTier(______, i);
+                    } else {
+                        break;
+                    }
+                }
+            }
+            flushed = false;
+            
+            break;
+        }
+        case 1: {
+            buffer.insert(key, value, false);
+            cout << "updated key " + to_string(key) + " and value" + value << endl;
+            if (bufferSize >= BUFFER_SIZE) {
+                string newfile = buffer.flushTier(LSMTier.size());
+                buffer.currentSize = 0;
+                flushed = true;
+            }
+            if (flushed == true){
+                int numOfTiers = LSMTier.size();
+                for (int i = 0; i < numOfTiers; i++){
+                    if (LSMTier[i].totalNumberOfTiers >= T){
+                        flushTier(i);
+                    } else {
+                        break;
+                    }
+                }
+            }
+            
+            break;
+        }
+        case 2: {
+            buffer.insert(key, "", true);
+            cout << "deleted key " + to_string(key) << endl;
+            if (bufferSize >= BUFFER_SIZE) {
+                string newfile = buffer.flushTier(LSMTier.size() );
+                buffer.currentSize = 0;
+                flushed = true;
+            }
+            if (flushed == true){
+                int numOfTiers = LSMTier.size();
+                for (int i = 0; i < numOfTiers; i++){
+                    if (LSMTier[i].totalNumberOfTiers >= T){
+                        flushTier(i);
+                    } else {
+                        break;
+                    }
+                }
+            }
+            
+            break;
+        }
+        // case 3: {
+        //     string pointLookup = buffer.searchKeyInBuffer(targetKey);
+        //     if (pointLookup != "") 
+        //         cout << "found key " + to_string(targetKey) + "'s value as " + pointLookup  << endl;
+        //     else if (lsm.pointLookupLevel(targetKey) != "") {
+        //         pointLookup = lsm.pointLookupLevel(targetKey);
+        //         cout << "found key " + to_string(targetKey) + "'s value as " + pointLookup  << endl;
+        //     } else {
+        //         cout << "key not found"  << endl;
+        //     }
+        //     break;
+        // }
+        // case 4: {
+        //     vector<string> rangeLookup = lsm.rangeLookupTier(lowerBound, upperBound);
+        //     if (rangeLookup.size() > 0) {
+        //         cout << "found: ";
+        //         for (int i=0; i< rangeLookup.size(); i++) {
+        //             cout << rangeLookup[i];
+        //         }
+        //         cout << endl;
+        //     }
+        //     else {
+        //         cout << "key not found"  << endl;
+        //     }
+        //     break;
+        // }
+        default: {
+            cout << "requested operation code " << to_string(operation) << " not found" << endl; 
+        }
+    }
+}
+
+
+void inserTier(string filename, int level){
+    std::ifstream infile(filename);
+    int key1;
+    string value;
+    bool flag;
+
+while (infile >> key1 >> value >> flag){
+        (operation, key1, value, key1, key1, key2, Q, T);
+    }
+}
+
+
+
+

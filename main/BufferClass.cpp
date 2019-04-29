@@ -56,28 +56,47 @@ void BufferClass::insert(int key, string value, bool flag) {
  */
 string BufferClass::flushLevel(int levelSize) {
     // retreive the current level file
-    string prevRecordName = "lsm_data/level_1_file_" + to_string(levelSize - 1) + ".txt";
-    // get the existing level 1 key-value data if there is any.
-    vector<KeyValuePair> prevKV = readFile(prevRecordName);
-    // construct a vector for current key-value data (yet to flush to level 1)
-    vector<KeyValuePair> curKV(keyValueArray, keyValueArray + totalNonDup);
-    // sort merge existing and new data to form a new leveling data
-    vector<KeyValuePair> ret = sortMerge(prevKV, curKV);
-    // put the updated level 1 data to the original file "level_1_file_1.txt"
-    std::ofstream bufferFile (prevRecordName);
-    for (int i=0; i < ret.size() ; i++) {
-        int key = ret[i].key;
-        string value = ret[i].value;
-        bool flag = ret[i].flag;
-        bufferFile << key << " " << value << " " << flag << "\n";
-    }
-    bufferFile.close();
-    // update the keyRange
-    smallest = keyValueArray[0].key;
-    largest = keyValueArray[BUFFER_SIZE - 1].key;
+    // string prevRecordName = "lsm_data/level_1_file_" + to_string(levelSize - 1) + ".txt";
+    // // get the existing level 1 key-value data if there is any.
+    // vector<KeyValuePair> prevKV = readFile(prevRecordName);
+    // // construct a vector for current key-value data (yet to flush to level 1)
+    // vector<KeyValuePair> curKV(keyValueArray, keyValueArray + totalNonDup);
+    // // sort merge existing and new data to form a new leveling data
+    // vector<KeyValuePair> ret = sortMerge(prevKV, curKV);
+    // // put the updated level 1 data to the original file "level_1_file_1.txt"
+    // std::ofstream bufferFile (prevRecordName);
+    // for (int i=0; i < ret.size() ; i++) {
+    //     int key = ret[i].key;
+    //     string value = ret[i].value;
+    //     bool flag = ret[i].flag;
+    //     bufferFile << key << " " << value << " " << flag << "\n";
+    // }
+    // bufferFile.close();
+    // // update the keyRange
+    // smallest = keyValueArray[0].key;
+    // largest = keyValueArray[BUFFER_SIZE - 1].key;
 
     return "";
 }
+
+
+string BufferClass::flushTier(int numberOfTiersInLevel1) {
+    // create the current level file
+    string NewRecordName = "lsm_data/level_1_file_" + to_string(numberOfTiersInLevel1) + ".txt";
+    std::ofstream bufferFile (NewRecordName);
+    for (int i=0; i < currentSize ; i++) {
+        int key = keyValueArray[i].key;
+        string value = keyValueArray[i].value;
+        bool flag = keyValueArray[i].flag;
+        bufferFile << key << " " << value << " " << flag << "\n";
+    }
+
+    bufferFile.close();
+    return NewRecordName;
+}
+
+
+
 
 /**
  * parses a file that stores each flushed buffer data into a vector of KeyValuePair

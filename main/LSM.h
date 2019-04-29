@@ -29,6 +29,11 @@ class LSM {
         vector<levelMetadata> LSMLevel;
         vector<tierMetadata> LSMTier;
         int currentLevel;
+        BufferClass buffer;
+
+
+        void inserTier(string filename, int level);
+        void driverTiering(int operation, int key = 0, string value = "", int targetKey = 0, int lowerBound = 0, int upperBound = 0, int Q = 0, int T= 0);
 
         string pointLookupLevel(int key);
         vector<string> rangeLookupLevel(int lowerBoundKey, int upperBoundKey);

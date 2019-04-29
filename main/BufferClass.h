@@ -33,7 +33,7 @@ class BufferClass {
 	public:
                 //TODO: upgrade to skiplist
                 KeyValuePair keyValueArray[BUFFER_SIZE];
-                int currentSize; 
+                int currentSize = 0; 
                 int smallest; // keyRange[0]
                 int largest; // keyRange[1]
                 int totalNonDup; // total non-duplicated key-value pairs
@@ -41,6 +41,7 @@ class BufferClass {
                 int getCurrentSize();
                 void insert(int key, string value, bool flag);
                 string flushLevel(int currentLevel);
+                string flushTier(int numberOfTiersInLevel1);
                 void writeToFile(string filename, vector<KeyValuePair> data);
 
                 vector<KeyValuePair> sortMerge(vector<KeyValuePair> array1, vector<KeyValuePair> array2);
