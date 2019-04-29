@@ -69,7 +69,7 @@ int BufferClass::flushLevel(int levelNumber) {
         string value = ret[i].value;
         bool flag = ret[i].flag;
         bufferFile << key << " " << value << " " << flag << "\n";
-    
+    }
     bufferFile.close();
     return ret.size();
 }
@@ -83,18 +83,6 @@ string BufferClass::flushTier(int numberOfTiersInLevel1) {
         int key = keyValueArray[i].key;
         string value = keyValueArray[i].value;
         bool flag = keyValueArray[i].flag;
-    string prevRecordName = "lsm_data/level_" + to_string(levelNumber) + "_file_1.txt";
-    // get the existing level 1 key-value data if there is any.
-    vector<KeyValuePair> prevKV = readFile(prevRecordName);
-    vector<KeyValuePair> curKV(keyValueArray, keyValueArray + totalNonDup);
-    // sort merge existing and new data to form a new leveling data
-    vector<KeyValuePair> ret = (prevKV.size() > 0) ? sortMerge(prevKV, curKV) : curKV;
-    // put the updated level 1 data to the original file "level_1_file_1.txt"
-    std::ofstream bufferFile (prevRecordName);
-    for (int i=0; i < ret.size() ; i++) {
-        int key = ret[i].key;
-        string value = ret[i].value;
-        bool flag = ret[i].flag;
         bufferFile << key << " " << value << " " << flag << "\n";
     }
 

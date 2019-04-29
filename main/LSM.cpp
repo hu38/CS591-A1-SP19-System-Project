@@ -6,19 +6,19 @@ void LSM::driverLeveling(int operation, int key, string value, int targetKey, in
     switch (operation) {
         case 0: {
             cout << "Inserting key " << key << " and value " << value << endl;
-            Buffer.insert(key, value, false);
-            if (Buffer.currentSize == BUFFER_SIZE) {
+            buffer.insert(key, value, false);
+            if (buffer.currentSize == BUFFER_SIZE) {
                 // flushLevel() would sortMerge before flush, and currentLevel will always be >= 1.
                 cout << "FLUSHING! current level: " << currentLevel << ", lsm size: " << LSMLevel.size() << endl;
-                int totalPairs = Buffer.flushLevel(currentLevel);
+                int totalPairs = buffer.flushLevel(currentLevel);
                 for (int i=0; i<LSMLevel.size(); i++) {
                     if (LSMLevel[i].totalNumberOfPairs > BUFFER_SIZE * pow(SIZE_RATIO, i)) {
                         
                     } else {
                         currentLevel += 1;
-                        totalPairs = Buffer.flushLevel(currentLevel);
+                        totalPairs = buffer.flushLevel(currentLevel);
                         string filename = "lsm_data/level_" + to_string(i) + "_file_1.txt";
-                        int ranges[] = {Buffer.smallest, Buffer.largest};
+                        int ranges[] = {buffer.smallest, buffer.largest};
                         levelMetadata newLevel = {currentLevel, filename, *ranges, totalPairs};
                         LSMLevel.push_back(newLevel);
                     }
@@ -27,11 +27,11 @@ void LSM::driverLeveling(int operation, int key, string value, int targetKey, in
                 break;
         }
         case 1: {
-            Buffer.insert(key, value, false);
+            buffer.insert(key, value, false);
             cout << "updated key " + to_string(key) + " and value" + value << endl;
-            if (Buffer.currentSize == BUFFER_SIZE) {
+            if (buffer.currentSize == BUFFER_SIZE) {
                 // buffer.flush();
-                Buffer.currentSize = 0;
+                buffer.currentSize = 0;
                 flushed = true;
 
             }
@@ -49,11 +49,11 @@ void LSM::driverLeveling(int operation, int key, string value, int targetKey, in
             break;
         }
         case 2: {
-            Buffer.insert(key, "", true);
+            buffer.insert(key, "", true);
             cout << "deleted key " + to_string(key) << endl;
-            if (Buffer.currentSize == BUFFER_SIZE) {
-                // Buffer.flush();
-                Buffer.currentSize = 0;
+            if (buffer.currentSize == BUFFER_SIZE) {
+                // buffer.flush();
+                buffer.currentSize = 0;
                 flushed = true;
 
             }
@@ -71,7 +71,7 @@ void LSM::driverLeveling(int operation, int key, string value, int targetKey, in
             break;
         }
         case 3: {
-            string pointLookup = Buffer.searchKeyInBuffer(targetKey);
+            string pointLookup = buffer.searchKeyInBuffer(targetKey);
             if (pointLookup != "") 
                 cout << "found key " + to_string(targetKey) + "'s value as " + pointLookup  << endl;
             else if (pointLookupLevel(targetKey) != "") {
@@ -400,7 +400,7 @@ void LSM::driverTiering(int operation, int key, string value, int targetKey, int
             buffer.insert(key, value, false);
             bufferSize ++;
             //cout << "inserted key " + to_string(key) + " and value " + value << endl;
-            cout <<  " Buffer Size " + to_string(bufferSize) << endl;
+            cout <<  " buffer Size " + to_string(bufferSize) << endl;
             cout << to_string(bufferSize == BUFFER_SIZE) << endl;
             if (bufferSize == BUFFER_SIZE) {
                 cout<<  " FLUSH Size " + to_string(bufferSize) << endl;
