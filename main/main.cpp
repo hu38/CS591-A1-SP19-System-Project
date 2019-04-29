@@ -387,34 +387,36 @@ int main(int argc, char *argv[]) {
 //######################################################################//
     // LSM lsm;
     // lsm.print_LSM();
-	// BufferClass BC;
-    // BC.currentSize = 0;
+	BufferClass BC;
     // BC.insert(300, "3", false);
     // BC.insert(100, "1", false);
-    // BC.insert(600, "6", false);
+    // BC.insert(100, "6", false);
     // BC.insert(200, "2", false);
-    // BC.insert(400, "4", false);
+    // BC.insert(40, "4", false);
     // BC.insert(500, "5", false);
+    // BC.insert(400, "9", false);
+    // BC.insert(700, "50", false);
+    // cout << BC.currentSize << endl;
     // BC.insert(1, "9000", true); //FIXME: bc doesn't handle delete to null
     // BC.insert(7, "7", false);
     // BC.insert(9, "9", false);
     // BC.insert(10, "19", false);
     // BC.insert(10, "10", false);
     // BC.insert(15, "15", false);
-    // BC.printBC();
-    LevelClass lv;
-    lv.currentLevel = 1;
-    lv.currentSize = 0;
-    lv.generateFilenameList();
-    lv.tiering();
+    BC.printBC();
+    // LevelClass lv;
+    // lv.currentLevel = 1;
+    // lv.currentSize = 0;
+    // lv.generateFilenameList();
+    // lv.tiering();
     // lv.printLV();
     // for (int i= 0; i<tmp.size(); i++) {
     //     cout << tmp[i].key << "-" << tmp[i].value << endl;
     // }
-    // string filename = "lsm_data/level_1_file_1.txt";
+    // string filename = "lsm_data/level_1_file_4.txt";
     // vector<KeyValuePair> tmp = lv.readFile(filename);
-    bool tmp = lv.currentSize == 20;
-    cout << tmp << ", current size: " << lv.currentLevel << endl;
+    // bool tmp = lv.currentSize == 20;
+    // cout << tmp << ", current size: " << lv.currentLevel << endl;
     // LSM lsm;
     // lsm.allLevel[1] = la;
     // lsm.pointLookup(1);

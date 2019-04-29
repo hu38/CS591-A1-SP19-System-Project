@@ -1,6 +1,7 @@
 #ifndef LSM_H
 #define LSM_H
-#include <iostream>
+#include <cmath>
+#include <cstdio>
 #include "LevelClass.h"
 using namespace std;
 
@@ -27,14 +28,16 @@ class LSM {
     public:
         vector<levelMetadata> LSMLevel;
         vector<tierMetadata> LSMTier;
+        int currentLevel;
 
         string pointLookupLevel(int key);
         vector<string> rangeLookupLevel(int lowerBoundKey, int upperBoundKey);
         string pointLookupTier(int key);
         vector<string> rangeLookupTier(int lowerBoundKey, int upperBoundKey);
-        void flushLevel(int level);
-        void flushTier(int level);
-
+        bool checkFlushLevel(int levelNumber);
+        bool checkFlushTier(int levelNumber);
+        void flushLevel(int levelNumber);
+        vector<KeyValuePair> flushLevel(int levelNumber);
 
         string searchKeyInFile(string filename, int key);
         vector<KeyValuePair> readKVFromFile(string filename);
