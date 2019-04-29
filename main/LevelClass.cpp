@@ -6,67 +6,118 @@
  * @params two sorted vectors of key value pairs with no duplicates, where array1 contains older inserts/updates than array 2.
  * @return a vector of key value pairs, with no duplicates.
  */
-//TODO: leveling and tiering
+//TODO: a better method to update levelArray
 vector<KeyValuePair> LevelClass::sortMerge(vector<KeyValuePair> array1, vector<KeyValuePair> array2) {
     // Initialize vecture of result
-    vector<KeyValuePair> Result;
+    vector<KeyValuePair> Result(array1.size() + array2.size());
     int i = 0, j = 0, k = 0;
-
+    
     // While both arrays have elements left to iterate through, compare the next element in each array and add
     // the one with the smallest key to the result array
     while (i < array1.size() && j < array2.size()){
+        
         if (array1[i].key < array2[j].key) {
-            Result[i+j] = array1[i];
+            Result[k] = array1[i];
+            levelArray[k] = array1[i];
             i++;
+            k++;
         }
         else if (array1[i].key > array2[j].key) {
-            Result[i+j] = array2[j];
+            Result[k] = array2[j];
+            levelArray[k] = array1[i];
             j++;
+            k++;
         }
-
         // If a duplicate is found, add the newest one and ignore the other one
         else{
-            Result[i+j] = array2[i];
+            Result[k] = array2[j];
+            levelArray[k] = array1[i];
             i++;
+            k++;
             j++;
         }
     }
     
     // if only one of the two arrays have elements left, add them to the end of the result array.
     while (i < array1.size()){
-          Result[i+j] = array1[i];
+          Result[k] = array1[i];
+          levelArray[k] = array1[i];
           i++;
+          k++;
     } 
     while (j < array2.size()){
-          Result[i+j] = array2[j];
+          Result[k] = array2[j];
+          levelArray[k] = array1[i];
           j++;
+          k++;
     } 
 
     return Result;
 }
 
 /**
+ * sorts the entire level after it's full by invokeing sortMerge()
+ * 
+ * @param void
+ * @return void
+ */
+vector<KeyValuePair> LevelClass::leveling() {
+    int count = 0;
+    vector<KeyValuePair> tmp;
+    while (count != SIZE_RATIO) {
+        if (count == 0) {
+            vector<KeyValuePair> vec1 = readFile(filenameList[count]);
+            vector<KeyValuePair> vec2 = readFile(filenameList[count + 1]);
+            tmp = sortMerge(vec1, vec2);
+        }
+        else {
+            vector<KeyValuePair> vec3 = readFile(filenameList[count]);
+            tmp = tmp.size() > 0 ? sortMerge(tmp, vec3) : tmp;
+        }
+
+        count += 2;
+    }
+    return tmp;
+}
+
+/**
+ * sorts whenever a new tier comes into the level by invoking sortMerge()
+ * 
+ * @param void
+ * @return void
+ */
+void LevelClass::tiering() {
+    readFile(filenameList[currentSize / BUFFER_SIZE]);
+    vector<KeyValuePair> newTier = readFile(filenameList[currentSize / BUFFER_SIZE]);
+    vector<KeyValuePair> curTiers(levelArray, levelArray + currentSize);
+    sortMerge(curTiers, newTier);
+}
+
+/**
  * parses a file that stores each flushed buffer data into a vector of KeyValuePair
  * 
  * @param[filepath:required] file path of the buffer data to read. e.g.("lsm_data/level_1_file_1.txt") 
- * @return a vector of KeyValuePair 
+ * @return a vector of KeyValuePair with a size of BUFFER_SIZE if file exists, else 0.
  */
 vector<KeyValuePair> LevelClass::readFile(string filepath) {
+    int totalSize = 0;
     KeyValuePair tmp[BUFFER_SIZE];
     int key;
     string value;
+    bool flag;
     fstream newLevel;
     newLevel.open(filepath);
-    currentLevel = stoi(string() + filepath.at(15));
-    currentSize = (stoi(string() + filepath.at(22)) - 1) * BUFFER_SIZE;
+    // currentLevel = stoi(string() + filepath.at(15));
+    // currentSize = (stoi(string() + filepath.at(22)) - 1) * BUFFER_SIZE;
     int count = 0;
-    while (newLevel >> key >> value) {
-        tmp[count] = (KeyValuePair) {key, value};
-        levelArray[currentSize] = (KeyValuePair) {key, value};
+    while (newLevel >> key >> value >> flag) {
+        tmp[count] = (KeyValuePair) {key, value, flag};
+        levelArray[currentSize] = (KeyValuePair) {key, value, flag};
         currentSize += 1;
         count += 1;
+        totalSize = count;
     }
-    vector<KeyValuePair> vec(tmp, tmp + BUFFER_SIZE);
+    vector<KeyValuePair> vec(tmp, tmp + totalSize);
     newLevel.close();    
 
     return vec;
@@ -89,19 +140,6 @@ void LevelClass::generateFilenameList() {
     }
 }
 
-/** 
- * invokes readFile for all data files for a given level
- * 
- * @param void
- * @return void
- */
-void LevelClass::combineLevelArrays() {
-    for (int i=0; i< SIZE_RATIO; i++) {
-        cout << "iteration: " << i << ", filename: " << filenameList[i] << endl;
-        readFile(filenameList[i]);
-    }
-}
-
 /**
  * prints out the entire level class
  * 
@@ -111,5 +149,19 @@ void LevelClass::combineLevelArrays() {
 void LevelClass::printLV() {
     for (int i=0; i< BUFFER_SIZE * SIZE_RATIO; i++) {
         cout << levelArray[i].key << " - " << levelArray[i].value << endl;
+    }
+}
+
+/** 
+ * \@depricated
+ * invokes readFile for all data files for a given level
+ * 
+ * @param void
+ * @return void
+ */
+void LevelClass::combineLevelArrays() {
+    for (int i=0; i< SIZE_RATIO; i++) {
+        cout << "iteration: " << i << ", filename: " << filenameList[i] << endl;
+        readFile(filenameList[i]);
     }
 }

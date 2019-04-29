@@ -16,11 +16,15 @@ class LevelClass {
         int currentSize;
         int currentLevel;
 
+        vector<KeyValuePair> leveling();
+        void tiering();
         vector<KeyValuePair> sortMerge(vector<KeyValuePair> array1, vector<KeyValuePair> array2);
         vector<KeyValuePair> readFile(string filename);
+        void flushLevel(int currentLevel);
         void printLV();
         void generateFilenameList();
         void combineLevelArrays();
+
 };
 
 #endif

@@ -40,10 +40,10 @@ void BufferClass::insert(int key, string value, bool flag) {
         }
     }
     // if the current size reaches the limit, flush the buffer and restart the counters
-    if (currentSize == BUFFER_SIZE){
-        cout << " FLUSH " << endl;
-        flush();
-    }
+    // if (currentSize == BUFFER_SIZE){
+    //     cout << " FLUSH " << endl;
+    //     flush();
+    // }
     // cout << "SIZE AFTER "<< currentSize << endl;
 }
 

@@ -30,18 +30,36 @@ struct levelMeta {
     //     upperBound(upperBound) {};
 };
 
+struct levelMetadata {
+    string filename;
+    int keyRange[2];
+    int levelNumber;
+};
+
+struct tier {
+    string filename;
+    int keyRange[2];
+    int tierNumber;
+};
+
+struct tierMetadata {
+    int totalTier;
+    vector<tier> tierData;
+};
+
 class LSM {
     public:
-        int lsm_tree[5];
-        int totalLevel;
-        levelArray allLevel[10];
+        vector<levelMetadata> LSMLevel;
+        vector<tierMetadata> LSMTier;
 
-        void insertValue(int key, string value);
-        void updateValue(int key, string value);
-        void deleteValue(int key);
-        string pointLookup(int key);
-        vector<string> rangeLookup(int lowerBoundKey, int upperBoundKey);
-        
+        string pointLookupLevel(int key);
+        vector<string> rangeLookupLevel(int lowerBoundKey, int upperBoundKey);
+
+        string pointLookupTier(int key);
+        vector<string> rangeLookupTier(int lowerBoundKey, int upperBoundKey);
+
+        string searchKeyInFile(string filename, int key);
+        vector<KeyValuePair> readKVFromFile(string filename);
         string searchKey(vector<KeyValuePair> vec, int key);
         void print_LSM();
 };

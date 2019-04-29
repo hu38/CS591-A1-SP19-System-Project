@@ -1,27 +1,70 @@
 #include "LSM.h"
 using namespace std;
 
+
+string LSM::searchKeyInFile(string filename, int targetKey) {
+    ifstream targetFile(filename);
+    // it's not openable only when it got deleted?
+    if (!targetFile) cerr << "Target file doesn't contain the given key.";
+    int key;
+    string value;
+    bool flag;
+    while (targetFile >> key >> value >> flag) {
+        if (key == targetKey && !flag) {
+            return value;
+        }
+    }
+    targetFile.close();
+    
+    return value;
+}
+
 /**
- * searches the value of the input key
+ * searches the value of the input key in a LSM with leveling
  * 
- * checks all fence pointers to see which block/tier's key range the given key falls into, 
- * then invokes a binary search in that tier to retrieve the according value
+ * checks all fence pointers to see which level's key range the given key falls into, 
+ * then searches the key while traversing the level's file. It's guaranteed to 
+ * have the latest value of the target key because we exit out of the function once 
+ * found any value while traversing from newest level.
  * 
  * @param[key:required] key to lookup in all levels
  * @return value of the key if key exists, or an error message elsewise
  */
-string LSM::pointLookup(int key) {
-    for (int levelNumber = 0; levelNumber < totalLevel; levelNumber++) {
-        //TODO: maybe in manifest file?
-        levelArray curLevel = allLevel[levelNumber];
+string LSM::pointLookupLevel(int key) {
+    for (int levelNumber = 0; levelNumber < LSMLevel.size(); levelNumber++) {
+        levelMetadata curLevel = LSMLevel[levelNumber];
         if (key >= curLevel.keyRange[0] and key < curLevel.keyRange[1]) {
-            vector<KeyValuePair> tmp (curLevel.pairs, curLevel.pairs + BUFFER_SIZE);
-            return searchKey(tmp, key);
+            return searchKeyInFile(curLevel.filename, key);
         }
     }
+
     return "";
 }
 
+/**
+ * searches the value of the input key in a LSM with tiering
+ * 
+ * checks all fence pointers to see which tier's key range the given key falls into, 
+ * then searches the key while traversing the tier's file. It's guaranteed to 
+ * have the latest value of the target key because we exit out of the function once 
+ * found any value while traversing from newest level.
+ * 
+ * @param[key:required] key to lookup in all levels
+ * @return value of the key if key exists, or an error message elsewise
+ */
+string LSM::pointLookupTier(int key) {
+    for (int levelNumber = 0; levelNumber < LSMTier.size(); levelNumber++) {
+        tierMetadata curLevel = LSMTier[levelNumber];
+        for (int tierNumber = 0; tierNumber < curLevel.tierData.size(); tierNumber++) {
+            tier curTier = curLevel.tierData[tierNumber];
+            if (key >= curTier.keyRange[0] and key < curTier.keyRange[1]) {
+                return searchKeyInFile(curTier.filename, key);
+            }
+        }
+    }
+
+    return "";
+}
 
 /**
  * searches the values whose keys fall into the given lowerBound and upperBound key range
@@ -30,14 +73,49 @@ string LSM::pointLookup(int key) {
  * @param[upperBoundKey:required] the largest key whose value will be returned 
  * @return a vector of values in form of string
  */
-vector<string> LSM::rangeLookup(int lowerBoundKey, int upperBoundKey) {
+vector<string> LSM::rangeLookupLevel(int lowerBoundKey, int upperBoundKey) {
     vector<string> ret;
-    for (int i = lowerBoundKey; i < upperBoundKey; i++) {
-        string tmp = pointLookup(lowerBoundKey);
-        if (tmp != "") {
-            ret.insert(ret.begin(), tmp);
+    /**
+     * find the potential levels - k
+     * search the key within each level
+     */
+
+
+    // 1. get the potential level's filenames - constant time k
+    vector<string> filenames;
+    for (int levelNumber = 0; levelNumber < LSMLevel.size(); levelNumber++) {
+        levelMetadata curLevel = LSMLevel[levelNumber];
+        if (upperBoundKey >= curLevel.keyRange[0] and upperBoundKey < curLevel.keyRange[1]) {
+            filenames.push_back(curLevel.filename);
         }
     }
+
+    // 2. combine all KeyValuePairs and then sort merge them - O(logN * logN)
+    LevelClass lv;
+    int count = 0;
+    vector<KeyValuePair> tmp;
+    while (count != ret.size()) {
+        if (count == 0) {
+            vector<KeyValuePair> vec1 = lv.readFile(ret[count]);
+            vector<KeyValuePair> vec2 = lv.readFile(ret[count + 1]);
+            tmp = lv.sortMerge(vec1, vec2);
+        }
+        else {
+            vector<KeyValuePair> vec3 = lv.readFile(ret[count]);
+            tmp = tmp.size() > 0 ? lv.sortMerge(tmp, vec3) : tmp;
+        }
+
+        count += 2;
+    }
+
+    // 3. search lowerbound - O(logN) + keep appending values to ret until upperBound - O(n)
+    for (int i = 0; i < tmp.size(); i++) {
+        if (tmp[i].key == lowerBoundKey) {
+            
+        }
+    }
+
+
     return ret;
 }
 
@@ -54,6 +132,7 @@ void LSM::print_LSM() {
 }
 
 /**
+ * @depricated
  * searches a given key with binary search approach
  * 
  * this binary search is advised against fast_upper_bound3 for faster lookup in C++
