@@ -20,7 +20,8 @@ class LevelClass {
         void leveling();
         vector<KeyValuePair> sortMerge(vector<KeyValuePair> array1, vector<KeyValuePair> array2);
         vector<KeyValuePair> readFile(string filename);
-        void flushLevel(int currentLevel);
+        vector<KeyValuePair> flushLevel(int currentLevel);
+        vector<KeyValuePair> flushTier(int currentLevel);
 
         void printLV();
         void generateFilenameList();

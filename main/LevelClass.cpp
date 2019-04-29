@@ -128,7 +128,7 @@ vector<KeyValuePair> LevelClass::readFile(string filepath) {
         totalSize = count;
     }
     vector<KeyValuePair> vec(tmp, tmp + totalSize);
-    newLevel.close();    
+    // newLevel.close();    
 
     return vec;
 }

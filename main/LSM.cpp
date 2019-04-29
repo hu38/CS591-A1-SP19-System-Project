@@ -153,6 +153,58 @@ vector<string> LSM::rangeLookupLevel(int lowerBoundKey, int upperBoundKey) {
     return ret;
 }
 
+bool LSM::checkFlushTier(int levelNumber) {
+    return (LSMTier[levelNumber].tierData.size() >= SIZE_RATIO - 1) ? true : false;
+}
+
+bool LSM::checkFlushLevel(int levelNumber) {
+    return (LSMLevel[levelNumber].totalLevel >= (pow(SIZE_RATIO, levelNumber) * BUFFER_SIZE)) ? true : false;
+}
+
+vector<KeyValuePair> LSM::flushLevel(int levelNumber) {
+    LevelClass lv;
+    string originalFilename = "lsm_data/level_" + to_string(levelNumber) + "_file_1.txt";
+    vector<KeyValuePair> tmp = lv.readFile(originalFilename);
+    char *fileToDelete = &originalFilename[0u];
+    remove(fileToDelete);
+    int key;
+    string value;
+    bool flag;
+    string newFilename = "lsm_data/level_" + to_string(levelNumber + 1) + "_file_1.txt";
+    std::ofstream targetFile (newFilename);
+    for (int i=0; i < BUFFER_SIZE ; i++) {
+        targetFile << key << " " << value << " " << flag << "\n";
+    }
+    targetFile.close();
+
+    return tmp;
+}
+
+vector<KeyValuePair> LSM::flushTier(int levelNumber) {
+    LevelClass lv;
+    lv.generateFilenameList();
+    lv.leveling();
+    vector<KeyValuePair> tmp(lv.levelArray, lv.levelArray + BUFFER_SIZE * SIZE_RATIO);
+    for (int i=0; i < SIZE_RATIO; i++) {
+        string originalFilename = lv.filenameList[i];
+        char *fileToDelete = &originalFilename[0u];
+        remove(fileToDelete);
+    }
+    int key;
+    string value;
+    bool flag;
+    string newFilename = "lsm_data/level_" + to_string(levelNumber + 1) + "_file_1.txt";
+    std::ofstream targetFile (newFilename);
+    for (int i=0; i < BUFFER_SIZE ; i++) {
+        targetFile << key << " " << value << " " << flag << "\n";
+    }
+    targetFile.close();
+
+    return tmp;
+}
+
+
+
 /**
  * prints out the entire LSM-Tree
  * 
