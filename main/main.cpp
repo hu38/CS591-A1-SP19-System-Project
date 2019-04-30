@@ -18,7 +18,7 @@ using namespace std;
  * @param[total:required] the number of total records desired to generate
  */
 void buildWorkload(string workload_kind, int total){
-    int probabilities[20] = {0,0,0,0,1,1,2,2,3,3,3,3,4,4,4,4};
+    int probabilities[20] = {0,0,0,0,1,1,1,1,1,2,2,2,2,3,3,3,3};
 
     if (workload_kind == "Gral"){
         probabilities[0] = 0;
@@ -28,23 +28,23 @@ void buildWorkload(string workload_kind, int total){
         probabilities[9] = 0;
         probabilities[13] = 0;
         probabilities[15] = 0;
-    } else if (workload_kind == "Update/Del"){
+    } else if (workload_kind == "Del"){
         probabilities[0] = 1;
-        probabilities[9] = 2;
+        probabilities[9] = 1;
         probabilities[13] = 1;
-        probabilities[15] = 2;
+        probabilities[15] = 1;
     } else if (workload_kind == "PointR"){
-        probabilities[0] = 3;
-        probabilities[4] = 3;
-        probabilities[6] = 3;
-        probabilities[13] = 3;
-        probabilities[15] = 3;
+        probabilities[0] = 2;
+        probabilities[4] = 2;
+        probabilities[6] = 2;
+        probabilities[13] = 2;
+        probabilities[15] = 2;
     } else {
-        probabilities[0] = 4;
-        probabilities[1] = 4;
-        probabilities[7] = 4;
-        probabilities[9] = 4;
-        probabilities[11] = 4;
+        probabilities[0] = 3;
+        probabilities[1] = 3;
+        probabilities[7] = 3;
+        probabilities[9] = 3;
+        probabilities[11] = 3;
     }
 
     // Now that the probabilities are specified, generate the workload
@@ -356,7 +356,7 @@ int main(int argc, char *argv[]) {
     LSM lsm;
 
     // Number of Instructions in Workload
-    int total = 12;
+    int total = 120;
 
     // Build a workload according to size and kind of workload wanted, store it in workload.txt
     //buildWorkload(workload_kind, total);

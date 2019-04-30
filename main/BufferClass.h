@@ -34,7 +34,7 @@ class BufferClass {
 	public:
                 //TODO: upgrade to skiplist
                 KeyValuePair keyValueArray[BUFFER_SIZE];
-                int currentSize = 0; 
+                int currentSize; 
                 int smallest; // keyRange[0]
                 int largest; // keyRange[1]
                 int totalNonDup; // total non-duplicated key-value pairs
