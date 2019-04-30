@@ -1,6 +1,5 @@
 #ifndef LSM_H
 #define LSM_H
-#include <cmath>
 #include <cstdio>
 #include "LevelClass.h"
 using namespace std;

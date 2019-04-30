@@ -55,15 +55,47 @@ void BufferClass::insert(int key, string value, bool flag) {
  * @param[levelSize] how many pages are in a level. it should be 1 all the time in leveling.
  * @return a placeholder string for no apparent purpose
  */
+bool fexists(const char *filename) {
+  std::ifstream ifile(filename);
+  return (bool)ifile;
+}
 int BufferClass::flushLevel(int levelNumber) {
-    string prevRecordName = "lsm_data/level_" + to_string(levelNumber) + "_file_1.txt";
+
+    vector<KeyValuePair> ret;
+    // previous level
+    string prevRecordName = "lsm_data/level_" + to_string(levelNumber - 1) + "_file_1.txt";
+    // cur target level
+    string curRecordName = "lsm_data/level_" + to_string(levelNumber) + "_file_1.txt";
+    // buffer data
+    vector<KeyValuePair> bufferKV(keyValueArray, keyValueArray + BUFFER_SIZE);
+    // cout << "bufferKV has " << bufferKV.size() << endl;
     // get the existing level 1 key-value data if there is any.
-    vector<KeyValuePair> prevKV = readFile(prevRecordName);
-    vector<KeyValuePair> curKV(keyValueArray, keyValueArray + totalNonDup);
-    // sort merge existing and new data to form a new leveling data
-    vector<KeyValuePair> ret = (prevKV.size() > 0) ? sortMerge(prevKV, curKV) : curKV;
-    // put the updated level 1 data to the original file "level_1_file_1.txt"
-    std::ofstream bufferFile (prevRecordName);
+    char *prevFile = &prevRecordName[0u];
+    char *curFile = &curRecordName[0u];
+    // cout << fexists(prevFile) << " --- " << fexists(curFile) << endl;
+    // if both previous and presentn level files exist
+    if (fexists(prevFile) and fexists(curFile)) {
+        vector<KeyValuePair> prevKV = readFile(prevRecordName);
+        vector<KeyValuePair> curKV = readFile(curRecordName);
+        // sort merge existing and new data to form a new leveling data
+        ret = sortMerge(prevKV, curKV);
+        ret = sortMerge(ret, bufferKV);
+        // cout << "prevKV " << prevRecordName << " has " << prevKV.size() << endl;
+        // cout << "curKV " << curRecordName <<  " has " << curKV.size() << endl;
+    } else if (fexists(prevFile) and !fexists(curFile)) {
+        vector<KeyValuePair> prevKV = readFile(prevRecordName);
+        ret = sortMerge(prevKV, bufferKV);
+        // cout << "prevKV " << prevRecordName << " has " << prevKV.size() << endl;
+    } else if (!fexists(prevFile) and fexists(curFile)) {
+        vector<KeyValuePair> curKV = readFile(curRecordName);
+        ret = sortMerge(curKV, bufferKV);
+        // cout << "curKV " << curRecordName <<  " has " << curKV.size() << endl;
+    } else {
+        ret = bufferKV;
+    }
+    // cout << "merged ret has " << ret.size() << endl;
+    // put the updated level 1 data to the original file "level_<level_number>_file_1.txt"
+    std::ofstream bufferFile (curRecordName);
     for (int i=0; i < ret.size() ; i++) {
         int key = ret[i].key;
         string value = ret[i].value;
@@ -71,6 +103,14 @@ int BufferClass::flushLevel(int levelNumber) {
         bufferFile << key << " " << value << " " << flag << "\n";
     }
     bufferFile.close();
+    remove(prevFile);
+    // for (int i=0 ; i < ret.size(); i++) {
+    //     cout << "readFile ret has key " << to_string(ret[i].key) << " - " << ret[i].value << endl;
+    // }
+    smallest = ret[0].key;
+    largest = ret.back().key;
+    // cout << ret.back().key << " - " << ret[ret.size()].key << " or " << ret[ret.size() - 1].key << endl;
+    
     return ret.size();
 }
 
@@ -100,22 +140,19 @@ string BufferClass::flushTier(int numberOfTiersInLevel1) {
  * @return a vector of KeyValuePair with a size of BUFFER_SIZE if file exists, else 0.
  */
 vector<KeyValuePair> BufferClass::readFile(string filepath) {
-    int totalSize = 0;
-    KeyValuePair tmp[BUFFER_SIZE];
+    vector<KeyValuePair> ret;
     int key;
     string value;
     bool flag;
-    fstream newFile;
+    ifstream newFile;
     newFile.open(filepath);
     int count = 0;
     while (newFile >> key >> value >> flag) {
-        tmp[count] = (KeyValuePair) {key, value, flag};
+        ret.push_back((KeyValuePair) {key, value, flag});
         currentSize += 1;
         count += 1;
-        totalSize = count;
     }
-    vector<KeyValuePair> ret(tmp, tmp + totalSize);
-    newFile.close();    
+    newFile.close();
 
     return ret;
 }

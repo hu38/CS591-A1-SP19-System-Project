@@ -19,6 +19,7 @@
 #include <vector>
 #include <typeinfo>
 #include <tuple>
+#include <cmath>
 using namespace std;
 
 const int BUFFER_SIZE = 5;

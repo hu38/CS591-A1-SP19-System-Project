@@ -85,10 +85,6 @@ void buildWorkload(string workload_kind, int total){
  * @param[upperBound] the upperBound in range lookup's key range
  * @return void
  */
-//FIXME: 
-
-
-
 // void driverLeveling(int operation, int key = 0, string value = "", int targetKey = 0, int lowerBound = 0, int upperBound = 0, int Q =0, int T = 0) {
 //     // int bufferSize = buffer.currentSize;
 //     bool flushed = false;
@@ -377,7 +373,7 @@ int main(int argc, char *argv[]) {
     } else {
         lsm.currentLevel = 0;
         while (infile >> operation >> key1 >> key2 >> value){
-            lsm.driverLeveling(operation, key1, value, key1, key1, key2, Q, T);        
+            lsm.driverLeveling(operation, key1, value, key1, key1, key2, Q, T); 
         }
     }
 
