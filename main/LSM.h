@@ -7,7 +7,8 @@ using namespace std;
 
 struct tier {
     string filename;
-    int keyRange[2];
+    int maxkey;
+    int minkey;
     int tierNumber; // number of sorted runs
 };
 
@@ -31,8 +32,10 @@ class LSM {
         int currentLevel;
         BufferClass buffer;
 
+        vector<KeyValuePair> sortMerge(vector<KeyValuePair> array1, vector<KeyValuePair> array2);
 
-        void inserTier(string filename, int level);
+
+        void insertTier(string filename, int level);
         void driverTiering(int operation, int key = 0, string value = "", int targetKey = 0, int lowerBound = 0, int upperBound = 0, int Q = 0, int T= 0);
 
         string pointLookupLevel(int key);
