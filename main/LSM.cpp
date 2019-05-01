@@ -10,7 +10,7 @@ void LSM::driverLeveling(int operation, int key, string value, int targetKey, in
             buffer.insert(key, value, false);
             int totalPairs;
             // cout << "inserting " << key << " and value " << value << endl;
-            if (buffer.currentSize == BUFFER_SIZE) {
+            if (buffer.currentSize == Q) {
                 // first we insert new buffer to level 1 + sortMerge with current level data
                 totalPairs = buffer.flushLevel(1); 
                 buffer.currentSize = 0;
@@ -50,7 +50,7 @@ void LSM::driverLeveling(int operation, int key, string value, int targetKey, in
                     levelMetadata tmp = LSMLevel[i];
                     // if exceeds the size limit for each level
                     // cout << "at level " << tmp.levelNumber << " w limit " << BUFFER_SIZE * pow(SIZE_RATIO, i+1) << ". cur " << tmp.totalNumberOfPairs << endl;
-                    if (tmp.totalNumberOfPairs >= (BUFFER_SIZE * pow(SIZE_RATIO, i+1))) {
+                    if (tmp.totalNumberOfPairs >= (Q * pow(T, i+1))) {
                         // we flush to the next level until last level of this tree
                         if (i > 0 and i < numOfLevels - 1) {
                             // cout << "level " << i << " at " << LSMLevel.size() << " not full" << endl;
@@ -119,7 +119,7 @@ void LSM::driverLeveling(int operation, int key, string value, int targetKey, in
                     levelMetadata tmp = LSMLevel[i];
                     // if exceeds the size limit for each level
                     // cout << "at level " << tmp.levelNumber << " w limit " << BUFFER_SIZE * pow(SIZE_RATIO, i+1) << ". cur " << tmp.totalNumberOfPairs << endl;
-                    if (tmp.totalNumberOfPairs >= (BUFFER_SIZE * pow(SIZE_RATIO, i+1))) {
+                    if (tmp.totalNumberOfPairs >= (Q * pow(T, i+1))) {
                         // we flush to the next level until last level of this tree
                         if (i > 0 and i < numOfLevels - 1) {
                             // cout << "level " << i << " at " << LSMLevel.size() << " not full" << endl;
