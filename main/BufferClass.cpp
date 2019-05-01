@@ -95,7 +95,8 @@ int BufferClass::flushLevel(int levelNumber) {
     }
     // cout << "merged ret has " << ret.size() << endl;
     // put the updated level 1 data to the original file "level_<level_number>_file_1.txt"
-    std::ofstream bufferFile (curRecordName);
+    ofstream bufferFile (curRecordName);
+    // cout << "merged ret to " << curRecordName << endl;
     for (int i=0; i < ret.size() ; i++) {
         int key = ret[i].key;
         string value = ret[i].value;
