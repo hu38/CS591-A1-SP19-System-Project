@@ -37,7 +37,7 @@ void BufferClass::insert(int key, string value, bool flag, int Q) {
                 totalNonDup++;
             }
         }
-    } 
+    }
 }
 
 bool fexists(const char *filename) {
@@ -67,7 +67,7 @@ int BufferClass::flushLevel(int levelNumber) {
     char *curFile = &curRecordName[0u];
     // cout << fexists(prevFile) << " --- " << fexists(curFile) << endl;
     // if both previous and presentn level files exist
-    if (fexists(prevFile) and fexists(curFile)) {
+    if (fexists(prevFile) == 1 and fexists(curFile) == 1) {
         vector<KeyValuePair> prevKV = readFile(prevRecordName);
         vector<KeyValuePair> curKV = readFile(curRecordName);
         // sort merge existing and new data to form a new leveling data
@@ -75,16 +75,17 @@ int BufferClass::flushLevel(int levelNumber) {
         ret = sortMerge(ret, bufferKV);
         // cout << "prevKV " << prevRecordName << " has " << prevKV.size() << endl;
         // cout << "curKV " << curRecordName <<  " has " << curKV.size() << endl;
-    } else if (fexists(prevFile) and !fexists(curFile)) {
+    } else if (fexists(prevFile) == 1 and fexists(curFile) == 0) {
         vector<KeyValuePair> prevKV = readFile(prevRecordName);
         ret = sortMerge(prevKV, bufferKV);
         // cout << "prevKV " << prevRecordName << " has " << prevKV.size() << endl;
-    } else if (!fexists(prevFile) and fexists(curFile)) {
+    } else if (fexists(prevFile) == 0 and fexists(curFile) == 1) {
         vector<KeyValuePair> curKV = readFile(curRecordName);
         ret = sortMerge(curKV, bufferKV);
         // cout << "curKV " << curRecordName <<  " has " << curKV.size() << endl;
     } else {
         ret = bufferKV;
+        // cout << "so I'm here?" << endl;
     }
     // cout << "merged ret has " << ret.size() << endl;
     // put the updated level 1 data to the original file "level_<level_number>_file_1.txt"
@@ -97,14 +98,25 @@ int BufferClass::flushLevel(int levelNumber) {
         bufferFile << key << " " << value << " " << flag << "\n";
     }
     bufferFile.close();
+    
+    // FILE *bufferFile;
+    // bufferFile = std::fopen (curFile, "w");
+    // if (bufferFile == NULL) {
+    //     fprintf(stderr, "\nError opend file\n"); 
+    //     exit (1); 
+    // }
+    // fwrite (&ret, sizeof(ret), 1, bufferFile); 
+    // fclose (bufferFile);
+
+    // for (int i=0; i<ret.size(); i++) {
+    //     cout << "readFile ret has key " << to_string(ret[i].key) << " - " << ret[i].value << endl;
+    // }
+
     remove(prevFile);
-    for (int i=0 ; i < ret.size(); i++) {
-        cout << "readFile ret has key " << to_string(ret[i].key) << " - " << ret[i].value << endl;
-    }
     smallest = ret[0].key;
     largest = ret.back().key;
     // cout << ret.back().key << " - " << ret[ret.size()].key << " or " << ret[ret.size() - 1].key << endl;
-    
+
     return ret.size();
 }
 
@@ -139,11 +151,24 @@ vector<KeyValuePair> BufferClass::readFile(string filepath) {
     newFile.open(filepath);
     int count = 0;
     while (newFile >> key >> value >> flag) {
-        ret.push_back((KeyValuePair) {key, value, flag});
-        currentSize += 1;
-        count += 1;
+        if (count == 0) {
+            ret.push_back((KeyValuePair) {key, value, flag});
+            count += 1;
+        }
+        if (count > 0) {
+            if (ret.back().key != key) {
+                // cout << "not equal: " << ret.back().key << " - " << key << endl;
+                ret.push_back((KeyValuePair) {key, value, flag});
+                count += 1;
+            }
+        }
     }
+    // currentSize += 1;
     newFile.close();
+    // FILE *readFile; 
+    // readFile = std::fopen(&filepath[0u], "r"); 
+    // fread(&ret, sizeof(KeyValuePair), 3, readFile);
+    // fclose(readFile);
 
     return ret;
 }

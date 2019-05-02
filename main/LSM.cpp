@@ -21,12 +21,13 @@ void LSM::driverLeveling(int operation, int key, string value, int targetKey, in
         case 0: {
             buffer.insert(key, value, false, Q);
             int totalPairs;
-            // cout << "inserting " << key << " and value " << value << endl;
-            if (buffer.currentSize == Q) {
+            // cout << "inserting " << key << " and value " << value << ". buffersize: " << buffer.currentSize << endl;
+            if (buffer.currentSize >= Q) {
                 // first we insert new buffer to level 1 + sortMerge with current level data
                 totalPairs = buffer.flushLevel(1); 
                 buffer.currentSize = 0;
                 flushed = true;
+                // cout << "FLUSHING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
             }
             if (flushed == true) {
                 // to check if the new buffer needs to go to other levels
@@ -88,7 +89,7 @@ void LSM::driverLeveling(int operation, int key, string value, int targetKey, in
             break;
         }
         case 1: {
-            buffer.insert(key, "", true, Q);
+            buffer.insert(key, value, true, Q);
             int totalPairs;
             // cout << "inserting " << key << " and value " << value << endl;
             if (buffer.currentSize == Q) {
@@ -158,15 +159,15 @@ void LSM::driverLeveling(int operation, int key, string value, int targetKey, in
         }
         case 2: {
             string pointLookup = buffer.searchKeyInBuffer(targetKey);
-            if (pointLookup != ""){ //
-                cout << "found buffer key " << targetKey << "'s value at " << pointLookup << endl;
-            }
-            else if (pointLookupLevel(targetKey) != "") {
-                pointLookup = pointLookupLevel(targetKey);
-                cout << "found level key " + to_string(targetKey) + "'s value at " + pointLookup  << endl;
-            } else {
-                cout << "key " << targetKey << " not found"  << endl;
-            }
+            if (pointLookup != "") pointLookupLevel(targetKey);
+            //     cout << "found buffer key " << targetKey << "'s value at " << pointLookup << endl;
+            // }
+            // else if (pointLookupLevel(targetKey) != "") {
+            //     pointLookup = pointLookupLevel(targetKey);
+            //     cout << "found level key " + to_string(targetKey) + "'s value at " + pointLookup  << endl;
+            // } else {
+            //     cout << "key " << targetKey << " not found"  << endl;
+            // }
             break;
         }
         case 3: {
