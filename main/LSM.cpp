@@ -575,3 +575,56 @@ int LSM::searchKey(vector<KeyValuePair> vec, int key) {
     
     return low;
 }
+
+vector<KeyValuePair> LSM::sortMerge(vector<KeyValuePair> array1, vector<KeyValuePair> array2) {
+    // Initialize vecture of result
+    vector<KeyValuePair> Result(array1.size() + array2.size());
+    int i = 0, j = 0, k = 0;
+    int duplicatecount = 0;
+    
+    // While both arrays have elements left to iterate through, compare the next element in each array and add
+    // the one with the smallest key to the result array
+    while (i < array1.size() && j < array2.size()){
+        
+        if (array1[i].key < array2[j].key) {
+            Result[k] = array1[i];
+            i++;
+            k++;
+        }
+        else if (array1[i].key > array2[j].key) {
+            Result[k] = array2[j];
+            j++;
+            k++;
+        }
+        // If a duplicate is found, add the newest one and ignore the other one
+        else{
+            Result[k] = array2[j];
+            i++;
+            k++;
+            j++;
+            duplicatecount++;
+        }
+    }
+    
+    // if only one of the two arrays have elements left, add them to the end of the result array.
+    while (i < array1.size()){
+          Result[k] = array1[i];
+          i++;
+          k++;
+    } 
+    while (j < array2.size()){
+          Result[k] = array2[j];
+          j++;
+          k++;
+    } 
+    
+    if (duplicatecount > 0) {
+        vector<KeyValuePair> finalRes(Result.size() - duplicatecount); 
+        for (int q = 0; q < finalRes.size(); q++){
+            finalRes[q] = Result[q];
+        }
+        return finalRes;
+    } else {
+        return Result;
+    }
+}

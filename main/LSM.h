@@ -41,6 +41,7 @@ class LSM {
         string searchKeyInFile(string filename, int key);
         int searchKey(vector<KeyValuePair> vec, int key);
         void insertTier(string filename, int level);
+        vector<KeyValuePair> sortMerge(vector<KeyValuePair> array1, vector<KeyValuePair> array2);
 };
 
 #endif
