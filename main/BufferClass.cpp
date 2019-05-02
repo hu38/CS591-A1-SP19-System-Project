@@ -9,13 +9,13 @@ using namespace std;
  * @param[flag:required] indicates if key is being deleted, a tombstone marker
  * @return no returns, simply updates the buffer 
  */
-void BufferClass::insert(int key, string value, bool flag) { 
+void BufferClass::insert(int key, string value, bool flag, int Q) { 
     // for the first element, simply add it to position 0 and increase the current size
     if (currentSize == 0){
-        keyValueArray[0] = (KeyValuePair) {key, value, flag};
+        keyValueArray.push_back((KeyValuePair) {key, value, flag});
         currentSize++;
         totalNonDup++;
-    } else if (currentSize < BUFFER_SIZE) {
+    } else if (currentSize <= Q) {
         // iterate through the entire array until finding a key larger than the new key or getting to the end
         for (int i = 0; i < currentSize; i++) {
             // if a duplicate is found, subsitute the new value and flag
@@ -25,26 +25,19 @@ void BufferClass::insert(int key, string value, bool flag) {
                 break;
             // if a larger key is found, insert the new key,value pair and shift all other elements down
             } else if (keyValueArray[i].key > key){
-                for(int j = BUFFER_SIZE-1; j > i; j--){
-                    keyValueArray[j]=keyValueArray[j-1];
-                    }
-                keyValueArray[i] = (KeyValuePair) {key, value, flag};
+
+                keyValueArray.insert(keyValueArray.begin() + i, (KeyValuePair) {key, value, flag});
                 totalNonDup++;
                 currentSize++;
                 break;
             // if the end of the buffer is reached, simply add the element to the end
             } else if (i == currentSize - 1){
-                keyValueArray[currentSize] = (KeyValuePair) {key, value, flag};
-                totalNonDup++;
+                keyValueArray.push_back((KeyValuePair) {key, value, flag});
                 currentSize++;
-                break;
+                totalNonDup++;
             }
         }
-    } else {
-        currentSize = 0;
-        totalNonDup = 0;
-        // if the current size reaches the limit, flush in driver
-    }
+    } 
 }
 
 /**
@@ -67,7 +60,7 @@ int BufferClass::flushLevel(int levelNumber) {
     // cur target level
     string curRecordName = "lsm_data/level_" + to_string(levelNumber) + "_file_1.txt";
     // buffer data
-    vector<KeyValuePair> bufferKV(keyValueArray, keyValueArray + BUFFER_SIZE);
+    vector<KeyValuePair> bufferKV = keyValueArray;
     // cout << "bufferKV has " << bufferKV.size() << endl;
     // get the existing level 1 key-value data if there is any.
     char *prevFile = &prevRecordName[0u];
@@ -224,7 +217,7 @@ vector<KeyValuePair> BufferClass::sortMerge(vector<KeyValuePair> array1, vector<
  * @see https://academy.realm.io/posts/how-we-beat-cpp-stl-binary-search/
  */
 string BufferClass::searchKeyInBuffer(int key) {
-    vector<KeyValuePair> vec (keyValueArray, keyValueArray + BUFFER_SIZE);
+    vector<KeyValuePair> vec = keyValueArray;
     int size = vec.size();
     int low = 0;
     
@@ -295,15 +288,18 @@ int BufferClass::explore(const char *dirname, int currentLevel) {
  * @param void
  * @return void
  */
-void BufferClass::printBC() {
-    cout << "__________________" << endl;
-    cout << "| key   |  value |" << endl;
-    for (int i=0; i < BUFFER_SIZE ; i++) {
-        cout << "|" << to_string(keyValueArray[i].key) + "\t" <<  "|" << keyValueArray[i].value + "\t" <<  " |" << endl;
-    }
-    cout << "-----------------" << endl;
-    return;
-}
+// void BufferClass::printBC() {
+//     cout << "__________________" << endl;
+//     cout << "| key   |  value |" << endl;
+
+
+
+//     for (int i=0; i < BUFFER_SIZE ; i++) {
+//         cout << "|" << to_string(keyValueArray[i].key) + "\t" <<  "|" << keyValueArray[i].value + "\t" <<  " |" << endl;
+//     }
+//     cout << "-----------------" << endl;
+//     return;
+// }
 
 ///////////////////////////////////////////experiement code////////////////////////////////////////////////////
 void BufferClass::writeToFile(string filename, vector<KeyValuePair> data) {
@@ -326,20 +322,20 @@ bool sorter(KeyValuePair lhs, KeyValuePair rhs) {
     return lhs.key < rhs.key; 
 }
 
-int BufferClass::checkKey(int key) {
-    // binary search function accommadated for an array of struct
-    std::vector<KeyValuePair> vec(keyValueArray, keyValueArray + BUFFER_SIZE);
-    return std::binary_search(
-        vec.begin(),
-        vec.end(),
-        (KeyValuePair) {key, },
-        sorter
-    );
-}
+// int BufferClass::checkKey(int key) {
+//     // binary search function accommadated for an array of struct
+//     std::vector<KeyValuePair> vec(keyValueArray, keyValueArray + BUFFER_SIZE);
+//     return std::binary_search(
+//         vec.begin(),
+//         vec.end(),
+//         (KeyValuePair) {key, },
+//         sorter
+//     );
+// }
 
-void BufferClass::sortBC() {
-    std::sort(keyValueArray, keyValueArray + BUFFER_SIZE, sorter);
-}
+// void BufferClass::sortBC() {
+//     std::sort(keyValueArray, keyValueArray + BUFFER_SIZE, sorter);
+// }
 
 int BufferClass::getCurrentSize() {
     return(currentSize);
@@ -348,25 +344,25 @@ int BufferClass::getCurrentSize() {
 /**
  * NOT IN USE
  */
-int BufferClass::flush(int currentLevel) {
-    string curDir = GetCurrentWorkingDir() + "/lsm_data";
-    char *cstr = &curDir[0u];
-    // get the current file count for level 1 from manifest file and increment it
-    int nextIter = explore(cstr, currentLevel) + 1; 
-    // int nextIter = currentSize + 1;
-    string filename = string() + "lsm_data/level_1_file_" + std::to_string(nextIter) + ".txt";
-    // create a file to store buffer
-    FILE *outfile; 
-    outfile = fopen("lsm_data/level_1_file_2.txt", "w"); 
-    if (outfile == NULL) 
-    { 
-        fprintf(stderr, "\nError opend file\n"); 
-        exit (1); 
-    }
-    fwrite(&keyValueArray, sizeof(KeyValuePair), BUFFER_SIZE, outfile); 
-    // reset BufferClass
-    currentSize = 0;
-    fclose (outfile);
+// int BufferClass::flush(int currentLevel) {
+//     string curDir = GetCurrentWorkingDir() + "/lsm_data";
+//     char *cstr = &curDir[0u];
+//     // get the current file count for level 1 from manifest file and increment it
+//     int nextIter = explore(cstr, currentLevel) + 1; 
+//     // int nextIter = currentSize + 1;
+//     string filename = string() + "lsm_data/level_1_file_" + std::to_string(nextIter) + ".txt";
+//     // create a file to store buffer
+//     FILE *outfile; 
+//     outfile = fopen("lsm_data/level_1_file_2.txt", "w"); 
+//     if (outfile == NULL) 
+//     { 
+//         fprintf(stderr, "\nError opend file\n"); 
+//         exit (1); 
+//     }
+//     fwrite(&keyValueArray, sizeof(KeyValuePair), BUFFER_SIZE, outfile); 
+//     // reset BufferClass
+//     currentSize = 0;
+//     fclose (outfile);
 
-    return nextIter;
-}
+//     return nextIter;
+// }

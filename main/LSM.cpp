@@ -7,7 +7,7 @@ void LSM::driverLeveling(int operation, int key, string value, int targetKey, in
 
     switch (operation) {
         case 0: {
-            buffer.insert(key, value, false);
+            buffer.insert(key, value, false, Q);
             int totalPairs;
             // cout << "inserting " << key << " and value " << value << endl;
             if (buffer.currentSize == Q) {
@@ -76,10 +76,10 @@ void LSM::driverLeveling(int operation, int key, string value, int targetKey, in
             break;
         }
         case 1: {
-            buffer.insert(key, "", true);
+            buffer.insert(key, "", true, Q);
             int totalPairs;
             // cout << "inserting " << key << " and value " << value << endl;
-            if (buffer.currentSize == BUFFER_SIZE) {
+            if (buffer.currentSize == Q) {
                 // first we insert new buffer to level 1 + sortMerge with current level data
                 totalPairs = buffer.flushLevel(1); 
                 buffer.currentSize = 0;
@@ -175,13 +175,15 @@ void LSM::driverLeveling(int operation, int key, string value, int targetKey, in
 }
 
 void LSM::driverTiering(int operation, int key, string value, int targetKey, int lowerBound, int upperBound, int Q, int T) {
+    
     switch (operation) {
         case 0: {
-            buffer.insert(key, value, false);
-            if (buffer.currentSize == Q) {
+            buffer.insert(key, value, false, Q);
+            if (buffer.currentSize >= Q) { 
                 string newfile;
                 if (LSMTier.empty()){
                     newfile = buffer.flushTier(0);
+                    
                 }
                 else{
                     newfile = buffer.flushTier(LSMTier[0].tierData.size());
@@ -206,7 +208,7 @@ void LSM::driverTiering(int operation, int key, string value, int targetKey, int
             break;
         }
         case 1: {
-            buffer.insert(key, "", true);
+            buffer.insert(key, "", true, Q);
             if (buffer.currentSize == Q) {
                 string newfile;
                 if (LSMTier.empty()){
@@ -556,13 +558,13 @@ int LSM::searchKey(vector<KeyValuePair> vec, int key) {
     return low;
 }
 
-bool LSM::checkFlushTier(int levelNumber) {
-    return (LSMTier[levelNumber].tierData.size() >= SIZE_RATIO - 1) ? true : false;
-}
+// bool LSM::checkFlushTier(int levelNumber) {
+//     return (LSMTier[levelNumber].tierData.size() >= SIZE_RATIO - 1) ? true : false;
+// }
 
-bool LSM::checkFlushLevel(int levelNumber) {
-    return (LSMLevel[levelNumber].totalNumberOfPairs >= (pow(SIZE_RATIO, levelNumber) * BUFFER_SIZE)) ? true : false;
-}
+// bool LSM::checkFlushLevel(int levelNumber) {
+//     return (LSMLevel[levelNumber].totalNumberOfPairs >= (pow(SIZE_RATIO, levelNumber) * BUFFER_SIZE)) ? true : false;
+// }
 
 void LSM::flushLevel(int levelNumber) {
     LevelClass lv;
@@ -588,30 +590,30 @@ void LSM::flushLevel(int levelNumber) {
     targetFile.close();
 }
 
-vector<KeyValuePair> LSM::flushTier(int levelNumber) {
-    LevelClass lv;
-    lv.generateFilenameList();
-    lv.leveling();
-    vector<KeyValuePair> tmp(lv.levelArray, lv.levelArray + BUFFER_SIZE * SIZE_RATIO);
-    for (int i=0; i < SIZE_RATIO; i++) {
-        string originalFilename = lv.filenameList[i];
-        char *fileToDelete = &originalFilename[0u];
-        remove(fileToDelete);
-    }
-    // write to the next level's next file
-    int nextPage = LSMTier[levelNumber].tierData.size() + 1;
-    string newFilename = "lsm_data/level_" + to_string(levelNumber + 1) + "_file_" + to_string(nextPage) + ".txt";
-    std::ofstream targetFile (newFilename);
-    for (int i=0; i < BUFFER_SIZE ; i++) {
-        int key = tmp[i].key;
-        string value = tmp[i].value;
-        bool flag = tmp[i].flag;
-        targetFile << key << " " << value << " " << flag << "\n";
-    }
-    targetFile.close();
+// vector<KeyValuePair> LSM::flushTier(int levelNumber) {
+//     LevelClass lv;
+//     lv.generateFilenameList();
+//     lv.leveling();
+//     vector<KeyValuePair> tmp(lv.levelArray, lv.levelArray + BUFFER_SIZE * SIZE_RATIO);
+//     for (int i=0; i < SIZE_RATIO; i++) {
+//         string originalFilename = lv.filenameList[i];
+//         char *fileToDelete = &originalFilename[0u];
+//         remove(fileToDelete);
+//     }
+//     // write to the next level's next file
+//     int nextPage = LSMTier[levelNumber].tierData.size() + 1;
+//     string newFilename = "lsm_data/level_" + to_string(levelNumber + 1) + "_file_" + to_string(nextPage) + ".txt";
+//     std::ofstream targetFile (newFilename);
+//     for (int i=0; i < BUFFER_SIZE ; i++) {
+//         int key = tmp[i].key;
+//         string value = tmp[i].value;
+//         bool flag = tmp[i].flag;
+//         targetFile << key << " " << value << " " << flag << "\n";
+//     }
+//     targetFile.close();
 
-    return tmp;
-}
+//     return tmp;
+// }
 
 vector<KeyValuePair> LSM::sortMerge(vector<KeyValuePair> array1, vector<KeyValuePair> array2) {
     // Initialize vecture of result
