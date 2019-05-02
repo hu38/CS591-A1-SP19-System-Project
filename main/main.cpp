@@ -2,8 +2,7 @@
 #include "LevelClass.cpp"
 #include "LSM.cpp"
 using namespace std;
-#include <typeinfo>
-#include <cstdlib>
+
 #define TIMER chrono::high_resolution_clock
 
 /**
@@ -74,18 +73,6 @@ void buildWorkload(string workload_kind, int total){
     workloadfile.close();
 }
 
-/**
- * driver function that takes one single instruction from workload
- * 
- * @param[operation:required] operation code in form of integer from 0 to 5, representing insert, update, delete, 
- *    point lookup, range lookup respectively
- * @param[key] key to insert, update, or delete
- * @param[value] value of a key
- * @param[targetKey] the key point lookup searches for
- * @param[lowerBound] the lowerbound in range lookup's key range
- * @param[upperBound] the upperBound in range lookup's key range
- * @return void
- */
 int main(int argc, char *argv[]) {
     // Explain inputs
     if (argc != 5) {
@@ -142,9 +129,9 @@ int main(int argc, char *argv[]) {
             TIMER::time_point ending = TIMER::now();
             elapsed = elapsed + (ending - start);
         }
-        for (int i = 0; i< lsm.LSMLevel.size(); i++) {
-            cout << "level " << i << " ranges from " <<  lsm.LSMLevel[i].keyRange[0] << " to " << lsm.LSMLevel[i].keyRange[1] << endl;
-        }
+        // for (int i = 0; i< lsm.LSMLevel.size(); i++) {
+        //     cout << "level " << i << " ranges from " <<  lsm.LSMLevel[i].keyRange[0] << " to " << lsm.LSMLevel[i].keyRange[1] << endl;
+        // }
     }
     TIMER::time_point ending = TIMER::now();
     elapsed = elapsed + (ending - start);
@@ -186,35 +173,4 @@ int main(int argc, char *argv[]) {
     // fclose (manifest); 
     return 1;
 }
-
-    // char command[50] = "cd lsm_data && ls -l";
-    // system(command);
-
-    /////////////////////////FILE EXAMPLE////////////////////////
-    // FILE *infile; 
-    // levelMeta input;
-    // infile = fopen ("lsm_data/lsm.meta", "r"); 
-    // if (infile == NULL) { 
-    //     fprintf(stderr, "\nError opening file\n"); 
-    //     exit (1); 
-    // }  
-    // // read file contents till end of file 
-    // while(fread (&input, sizeof(input), 1, infile)) {
-    //     cout << "level: " << to_string(input.levelNumber) << endl;
-    //     // std::ostringstream oss;
-    //     // vector<int> vec = input.lowerBound;
-    //     // if (!vec.empty())
-    //     // {
-    //     //     // Convert all but the last element to avoid a trailing ","
-    //     //     std::copy(vec.begin(), vec.end()-1,
-    //     //         std::ostream_iterator<int>(oss, ","));
-
-    //     //     // Now add the last element with no delimiter
-    //     //     oss << vec.back();
-    //     // }
-    //     // std::cout << oss.str() << std::endl;
-    //     // string str(input.lowerBound, input.lowerBound);
-    //     // cout << "lower bound: " << str << endl;
-    // }
-    // // close file 
-    // fclose (infile); 
+ 

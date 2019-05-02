@@ -2,27 +2,25 @@
 #define BufferClass_H
 
 #include <iostream>
-#include <sys/uio.h>//https://stackoverflow.com/questions/2762010/osx-sys-io-h-not-found
-#include <string.h>
-#include <string>
 #include <stdio.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <unistd.h>
-#define GetCurrentDir getcwd // diff for windows
-#include <dirent.h>
+// #define GetCurrentDir getcwd // diff for windows
+// #include <dirent.h>
 #include <time.h>
 #include <fstream> 
 #include <chrono>
-#include <ctime>
 #include <algorithm>
 #include <vector>
 #include <typeinfo>
-#include <tuple>
 #include <cmath>
+#include <cstdio>
+#include <cstdlib>
 using namespace std;
 
+const int SIZE_RATIO = 4;
 const int BUFFER_SIZE = 1000;
+
 struct stat info;
 struct KeyValuePair
 {   int key;

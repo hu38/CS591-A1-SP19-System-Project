@@ -1,7 +1,6 @@
 #ifndef LSM_H
 #define LSM_H
-#include <cstdio>
-#include "LevelClass.h"
+#include "BufferClass.h"
 using namespace std;
 
 struct tier {
@@ -30,27 +29,18 @@ class LSM {
         vector<tierMetadata> LSMTier;
         int currentLevel;
         BufferClass buffer;
-
-        vector<KeyValuePair> sortMerge(vector<KeyValuePair> array1, vector<KeyValuePair> array2);
-
-
-        void insertTier(string filename, int level);
+        
         void driverTiering(int operation, int key = 0, string value = "", int targetKey = 0, int lowerBound = 0, int upperBound = 0, int Q = 0, int T= 0);
-
+        void driverLeveling(int operation, int key, string value, int targetKey, int lowerBound, int upperBound, int Q, int T);
+        
         string pointLookupLevel(int key);
         vector<string> rangeLookupLevel(int lowerBoundKey, int upperBoundKey);
         string pointLookupTier(int key);
         vector<string> rangeLookupTier(int lowerBoundKey, int upperBoundKey);
-        bool checkFlushLevel(int levelNumber);
-        bool checkFlushTier(int levelNumber);
-        void flushLevel(int currentLevel);
-        vector<KeyValuePair> flushTier(int currentLevel);
-        void driverLeveling(int operation, int key, string value, int targetKey, int lowerBound, int upperBound, int Q, int T);
-
+        
         string searchKeyInFile(string filename, int key);
-        vector<KeyValuePair> readKVFromFile(string filename);
         int searchKey(vector<KeyValuePair> vec, int key);
-        void print_LSM();
+        void insertTier(string filename, int level);
 };
 
 #endif
