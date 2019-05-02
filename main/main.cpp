@@ -19,34 +19,34 @@ using namespace std;
  * @param[total:required] the number of total records desired to generate
  */
 void buildWorkload(string workload_kind, int total){
-    int probabilities[20] = {0,0,0,0,1,1,1,1,1,2,2,2,2,3,3,3,3};
+    int probabilities[20] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
-    if (workload_kind == "Gral"){
-        probabilities[0] = 0;
-    } else if (workload_kind == "Insert"){
-        probabilities[5] = 0;
-        probabilities[7] = 0;
-        probabilities[9] = 0;
-        probabilities[13] = 0;
-        probabilities[15] = 0;
-    } else if (workload_kind == "Del"){
-        probabilities[0] = 1;
-        probabilities[9] = 1;
-        probabilities[13] = 1;
-        probabilities[15] = 1;
-    } else if (workload_kind == "PointR"){
-        probabilities[0] = 2;
-        probabilities[4] = 2;
-        probabilities[6] = 2;
-        probabilities[13] = 2;
-        probabilities[15] = 2;
-    } else {
-        probabilities[0] = 3;
-        probabilities[1] = 3;
-        probabilities[7] = 3;
-        probabilities[9] = 3;
-        probabilities[11] = 3;
-    }
+    // if (workload_kind == "Gral"){
+    //     probabilities[0] = 0;
+    // } else if (workload_kind == "Insert"){
+    //     probabilities[5] = 0;
+    //     probabilities[7] = 0;
+    //     probabilities[9] = 0;
+    //     probabilities[13] = 0;
+    //     probabilities[15] = 0;
+    // } else if (workload_kind == "Del"){
+    //     probabilities[0] = 1;
+    //     probabilities[9] = 1;
+    //     probabilities[13] = 1;
+    //     probabilities[15] = 1;
+    // } else if (workload_kind == "PointR"){
+    //     probabilities[0] = 2;
+    //     probabilities[4] = 2;
+    //     probabilities[6] = 2;
+    //     probabilities[13] = 2;
+    //     probabilities[15] = 2;
+    // } else {
+    //     probabilities[0] = 3;
+    //     probabilities[1] = 3;
+    //     probabilities[7] = 3;
+    //     probabilities[9] = 3;
+    //     probabilities[11] = 3;
+    // }
 
     // Now that the probabilities are specified, generate the workload
     srand(time(NULL));
@@ -59,7 +59,7 @@ void buildWorkload(string workload_kind, int total){
         int operation = probabilities[randIndex];
         int key = rand() % (total/2);
         string value = std::to_string(rand() % 1000);
-        if (operation == 4) {
+        if (operation == 3) {
             int key2 = rand() % total/2;
             if (key > key2) {
                 workloadfile << operation << " " << key2 << " " << key << " " << value << "\n";
@@ -108,30 +108,32 @@ int main(int argc, char *argv[]) {
     LSM lsm;
 
     // Number of Instructions in Workload
-    int total = 20;
+    int total = 100000;
 
     // Build a workload according to size and kind of workload wanted, store it in workload.txt
     buildWorkload(workload_kind, total);
 
     // iterate through the workload and process it via driver 
-    ifstream infile("all-insert-workload.txt");
+    ifstream infile("workload.txt");
     int operation, key1, key2;
     string value;
     
     chrono::duration<double> elapsed;
+    TIMER::time_point start = TIMER::now();
     if (Policy == "t"){
         
         while (infile >> operation >> key1 >> key2 >> value){
+            //cout<< operation << key1 << endl;
             
-            TIMER::time_point start = TIMER::now();
+            
             lsm.driverTiering(operation, key1, value, key1, key1, key2, Q, T);
-            TIMER::time_point ending = TIMER::now();
-            elapsed = elapsed + (ending - start);
+            
         }
-        for (int i = 0; i< lsm.LSMTier.size(); i++) {
-            for (int j=0; j<lsm.LSMTier[i].tierData.size(); j++) 
-                cout << "level " << i << " ranges from " <<  lsm.LSMTier[i].tierData[j].minkey << " to " << lsm.LSMTier[i].tierData[j].maxkey << endl;
-        }
+        // for (int i = 0; i< lsm.LSMTier.size(); i++) {
+        //     for (int j=0; j<lsm.LSMTier[i].tierData.size(); j++) 
+        //         cout<< "level " << i  << "tier " << j << " ranges from " <<  lsm.LSMTier[i].tierData[j].minkey << " to " << lsm.LSMTier[i].tierData[j].maxkey << endl;
+        // }
+
     } else {
         // lsm.currentLevel = 0;
         while (infile >> operation >> key1 >> key2 >> value){
@@ -144,8 +146,10 @@ int main(int argc, char *argv[]) {
             cout << "level " << i << " ranges from " <<  lsm.LSMLevel[i].keyRange[0] << " to " << lsm.LSMLevel[i].keyRange[1] << endl;
         }
     }
-
-    cout << elapsed.count()/total << endl;
+    TIMER::time_point ending = TIMER::now();
+    elapsed = elapsed + (ending - start);
+    //cout << elapsed.count() << endl;
+    cout << elapsed.count() << endl;
     
     
     // vector<KeyValuePair> tmp = buffer.readFile("lsm_data/level_1_file_1.txt");

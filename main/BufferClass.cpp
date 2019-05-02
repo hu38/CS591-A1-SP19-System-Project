@@ -35,6 +35,7 @@ void BufferClass::insert(int key, string value, bool flag, int Q) {
                 keyValueArray.push_back((KeyValuePair) {key, value, flag});
                 currentSize++;
                 totalNonDup++;
+                break;
             }
         }
     } 
@@ -110,6 +111,7 @@ int BufferClass::flushLevel(int levelNumber) {
 
 
 string BufferClass::flushTier(int numberOfTiersInLevel1) {
+    //cout << "FLUSHING BUFFER" << endl;
     // create the current level file
     string NewRecordName = "lsm_data/level_1_file_" + to_string(numberOfTiersInLevel1) + ".txt";
     std::ofstream bufferFile (NewRecordName);
@@ -119,8 +121,10 @@ string BufferClass::flushTier(int numberOfTiersInLevel1) {
         bool flag = keyValueArray[i].flag;
         bufferFile << key << " " << value << " " << flag << "\n";
     }
-
+    
     bufferFile.close();
+    vector<KeyValuePair> NEWVECT;
+    keyValueArray = NEWVECT;
     return NewRecordName;
 }
 
