@@ -16,7 +16,6 @@ using namespace std;
 void LSM::driverLeveling(int operation, int key, string value, int targetKey, int lowerBound, int upperBound, int Q, int T) {
     // int bufferSize = buffer.,,currentSize;
     bool flushed = false;
-
     switch (operation) {
         case 0: {
             buffer.insert(key, value, false, Q);
@@ -189,7 +188,6 @@ void LSM::driverLeveling(int operation, int key, string value, int targetKey, in
 }
 
 void LSM::driverTiering(int operation, int key, string value, int targetKey, int lowerBound, int upperBound, int Q, int T) {
-    
     switch (operation) {
         case 0: {
             buffer.insert(key, value, false, Q);
@@ -197,7 +195,6 @@ void LSM::driverTiering(int operation, int key, string value, int targetKey, int
                 string newfile;
                 if (LSMTier.empty()){
                     newfile = buffer.flushTier(0);
-                    
                 }
                 else{
                     newfile = buffer.flushTier(LSMTier[0].tierData.size());
@@ -222,8 +219,8 @@ void LSM::driverTiering(int operation, int key, string value, int targetKey, int
             break;
         }
         case 1: {
-            buffer.insert(key, "", true, Q);
-            if (buffer.currentSize == Q) {
+            buffer.insert(key, value, true, Q);
+            if (buffer.currentSize >= Q) {
                 string newfile;
                 if (LSMTier.empty()){
                     newfile = buffer.flushTier(0);
@@ -265,7 +262,7 @@ void LSM::driverTiering(int operation, int key, string value, int targetKey, int
             break;
         }
         case 3: {
-            cout << "searching between range " << lowerBound << " and " << upperBound << endl;
+            //cout << "SEARCHING between range " << lowerBound << " and " << upperBound << endl;
             vector<string> rangeLookup = rangeLookupTier(lowerBound, upperBound);
             // if (rangeLookup.size() > 0) {
             //     cout << "found: " << rangeLookup.size() << " results." << endl;
@@ -285,7 +282,7 @@ void LSM::driverTiering(int operation, int key, string value, int targetKey, int
 string LSM::searchKeyInFile(string filename, int targetKey) {
     ifstream targetFile(filename);
     // it's not openable only when it got deleted?
-    if (!targetFile) cerr << "Target file doesn't contain the given key.";
+    //if (!targetFile) cerr << "Target file doesn't contain the given key.";
     int key;
     string value;
     bool flag;
@@ -300,6 +297,7 @@ string LSM::searchKeyInFile(string filename, int targetKey) {
 }
 
 void LSM::insertTier(string filename, int level){
+
     // If we are inserting into level 1 it means that we have a buffer file
     tier NewTier;
     if (level == 1){
@@ -315,7 +313,8 @@ void LSM::insertTier(string filename, int level){
             NewPair = (KeyValuePair) {key1, value, flag};
             vec.insert(vec.end(), NewPair);
         }
-        int maxK = (int) vec[vec.size()].key;
+        //cout<< "yhrtwgefwdc    vector Size "<<vec.size() << endl;
+        int maxK = vec.back().key;
         int minK = vec[0].key;
 
         
@@ -337,7 +336,7 @@ void LSM::insertTier(string filename, int level){
                 NewPair = (KeyValuePair) {key1, value, flag};
                 vec.insert(vec.end(), NewPair);
             }
-            vec2 = buffer.sortMerge(vec2, vec);
+            vec2 = sortMerge(vec2, vec);
             vec.clear();
 
 
@@ -347,11 +346,12 @@ void LSM::insertTier(string filename, int level){
         } 
 
         if (LSMTier.size() < level){
+            
             filename = "lsm_data/level_" + to_string(level) + "_file_" + to_string(0) + ".txt";
         } else {
             filename = "lsm_data/level_" + to_string(level) + "_file_" + to_string(LSMTier[level-1].totalNumberOfTiers) + ".txt";
         }
-        int maxK = (int) vec2[vec2.size()].key;
+        int maxK = vec2.back().key;
         int minK = vec2[0].key;
 
         std::ofstream newfile (filename);
@@ -365,6 +365,7 @@ void LSM::insertTier(string filename, int level){
 
         NewTier = (tier) {filename, maxK, minK, 0};
     }
+    
     // check if there is a vector in the level otherwise start a new level
     if (LSMTier.empty() || level > LSMTier.size()){
         vector<tier> newtierData;
@@ -377,6 +378,10 @@ void LSM::insertTier(string filename, int level){
         LSMTier[level-1].tierData.push_back(NewTier);
         LSMTier[level-1].totalNumberOfTiers ++;
     }
+
+    // cout << "Tier Num    " << LSMTier[level-1].totalNumberOfTiers;
+    // cout << "   Max Key" << LSMTier[level-1].tierData.back().maxkey;
+    // cout << "   Min Key" << LSMTier[level-1].tierData.back().minkey << endl;
 
 }
 
@@ -450,7 +455,7 @@ vector<string> LSM::rangeLookupTier(int lowerBoundKey, int upperBoundKey) {
             tier curTier = curLevel[tierNumber];
             if ((lowerBoundKey >= curTier.minkey or upperBoundKey < curTier.maxkey) and (fexists(&curTier.filename[0u]))) {
                 filenames.push_back(curTier.filename);
-                cout << "found file " << curTier.filename << endl;
+                //cout << "found file " << curTier.filename << endl;
             }
         }
     }
