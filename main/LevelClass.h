@@ -6,7 +6,7 @@
 
 using namespace std;
 
-const int SIZE_RATIO = 4;
+// const int SIZE_RATIO = 4;
 // const int MAX_SIZE = 2  ** 4;
 
 class LevelClass {

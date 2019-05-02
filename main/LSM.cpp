@@ -1,6 +1,18 @@
 #include "LSM.h"
 using namespace std;
 
+/**
+ * driver function that takes one single instruction from workload in leveling
+ * 
+ * @param[operation:required] operation code in form of integer from 0 to 5, representing insert, update, delete, 
+ *    point lookup, range lookup respectively
+ * @param[key] key to insert, update, or delete
+ * @param[value] value of a key
+ * @param[targetKey] the key point lookup searches for
+ * @param[lowerBound] the lowerbound in range lookup's key range
+ * @param[upperBound] the upperBound in range lookup's key range
+ * @return void
+ */
 void LSM::driverLeveling(int operation, int key, string value, int targetKey, int lowerBound, int upperBound, int Q, int T) {
     // int bufferSize = buffer.,,currentSize;
     bool flushed = false;
@@ -54,7 +66,7 @@ void LSM::driverLeveling(int operation, int key, string value, int targetKey, in
                         // we flush to the next level until last level of this tree
                         if (i > 0 and i < numOfLevels - 1) {
                             // cout << "level " << i << " at " << LSMLevel.size() << " not full" << endl;
-                            flushLevel(i + 1);
+                            buffer.flushLevel(i + 1);
                         }
                         // if it's the last level and we still want to flush, we create a new level and put things there
                         else {
@@ -123,7 +135,7 @@ void LSM::driverLeveling(int operation, int key, string value, int targetKey, in
                         // we flush to the next level until last level of this tree
                         if (i > 0 and i < numOfLevels - 1) {
                             // cout << "level " << i << " at " << LSMLevel.size() << " not full" << endl;
-                            flushLevel(i + 1);
+                            buffer.flushLevel(i + 1);
                         }
                         // if it's the last level and we still want to flush, we create a new level and put things there
                         else {
@@ -146,14 +158,15 @@ void LSM::driverLeveling(int operation, int key, string value, int targetKey, in
         }
         case 2: {
             string pointLookup = buffer.searchKeyInBuffer(targetKey);
-            // if (pointLookup != ""){ pointLookupLevel(targetKey);}
-            //     //cout << "found buffer key " << targetKey << "'s value at " << pointLookup << endl;
-            // else if (pointLookupLevel(targetKey) != "") {
-            //     pointLookup = 
-            //     //cout << "found level key " + to_string(targetKey) + "'s value at " + pointLookup  << endl;
-            // } else {
-            //     //cout << "key " << targetKey << " not found"  << endl;
-            // }
+            if (pointLookup != ""){ //
+                cout << "found buffer key " << targetKey << "'s value at " << pointLookup << endl;
+            }
+            else if (pointLookupLevel(targetKey) != "") {
+                pointLookup = pointLookupLevel(targetKey);
+                cout << "found level key " + to_string(targetKey) + "'s value at " + pointLookup  << endl;
+            } else {
+                cout << "key " << targetKey << " not found"  << endl;
+            }
             break;
         }
         case 3: {
@@ -249,7 +262,7 @@ void LSM::driverTiering(int operation, int key, string value, int targetKey, int
             break;
         }
         case 3: {
-            //cout << "searching between range " << lowerBound << " and " << upperBound << endl;
+            cout << "searching between range " << lowerBound << " and " << upperBound << endl;
             vector<string> rangeLookup = rangeLookupTier(lowerBound, upperBound);
             // if (rangeLookup.size() > 0) {
             //     cout << "found: " << rangeLookup.size() << " results." << endl;
@@ -441,7 +454,7 @@ vector<string> LSM::rangeLookupTier(int lowerBoundKey, int upperBoundKey) {
 
     // 2. combine all KeyValuePairs and then sort merge them - O(logN * logN)
     if (filenames.size() < 1) return ret;
-    LevelClass lv;
+    cout << "found " << filenames.size() << " files" << endl;
     int count = 0;
     vector<KeyValuePair> tmp;
     do {
@@ -493,7 +506,6 @@ vector<string> LSM::rangeLookupLevel(int lowerBoundKey, int upperBoundKey) {
 
     // 2. combine all KeyValuePairs and then sort merge them - O(logN * logN)
     if (filenames.size() < 1) return ret;
-    LevelClass lv;
     int count = 0;
     vector<KeyValuePair> tmp;
     do {
@@ -554,114 +566,4 @@ int LSM::searchKey(vector<KeyValuePair> vec, int key) {
     }
     
     return low;
-}
-
-bool LSM::checkFlushTier(int levelNumber) {
-    return (LSMTier[levelNumber].tierData.size() >= SIZE_RATIO - 1) ? true : false;
-}
-
-bool LSM::checkFlushLevel(int levelNumber) {
-    return (LSMLevel[levelNumber].totalNumberOfPairs >= (pow(SIZE_RATIO, levelNumber) * BUFFER_SIZE)) ? true : false;
-}
-
-void LSM::flushLevel(int levelNumber) {
-    LevelClass lv;
-    // read and remove current level's data/file
-    string originalFilename = "lsm_data/level_" + to_string(levelNumber) + "_file_1.txt";
-    vector<KeyValuePair> tmp = lv.readFile(originalFilename);
-    char *fileToDelete = &originalFilename[0u];
-    remove(fileToDelete);
-    // sort-merge the flushed data with the next level if there is data
-    string newFilename = "lsm_data/level_" + to_string(levelNumber + 1) + "_file_1.txt";
-    vector<KeyValuePair> tmp2 = lv.readFile(newFilename);
-    if (tmp2.size() > 0) {
-        tmp2 = lv.sortMerge(tmp, tmp2);
-    }
-    // write to the next level's file
-    std::ofstream targetFile (newFilename);
-    for (int i=0; i < tmp2.size() ; i++) {
-        int key = tmp2[i].key;
-        string value = tmp2[i].value;
-        bool flag = tmp2[i].flag;
-        targetFile << key << " " << value << " " << flag << "\n";
-    }
-    targetFile.close();
-}
-
-vector<KeyValuePair> LSM::flushTier(int levelNumber) {
-    LevelClass lv;
-    lv.generateFilenameList();
-    lv.leveling();
-    vector<KeyValuePair> tmp(lv.levelArray, lv.levelArray + BUFFER_SIZE * SIZE_RATIO);
-    for (int i=0; i < SIZE_RATIO; i++) {
-        string originalFilename = lv.filenameList[i];
-        char *fileToDelete = &originalFilename[0u];
-        remove(fileToDelete);
-    }
-    // write to the next level's next file
-    int nextPage = LSMTier[levelNumber].tierData.size() + 1;
-    string newFilename = "lsm_data/level_" + to_string(levelNumber + 1) + "_file_" + to_string(nextPage) + ".txt";
-    std::ofstream targetFile (newFilename);
-    for (int i=0; i < BUFFER_SIZE ; i++) {
-        int key = tmp[i].key;
-        string value = tmp[i].value;
-        bool flag = tmp[i].flag;
-        targetFile << key << " " << value << " " << flag << "\n";
-    }
-    targetFile.close();
-
-    return tmp;
-}
-
-vector<KeyValuePair> LSM::sortMerge(vector<KeyValuePair> array1, vector<KeyValuePair> array2) {
-    // Initialize vecture of result
-    vector<KeyValuePair> Result(array1.size() + array2.size());
-    int i = 0, j = 0, k = 0;
-    int duplicatecount = 0;
-    
-    // While both arrays have elements left to iterate through, compare the next element in each array and add
-    // the one with the smallest key to the result array
-    while (i < array1.size() && j < array2.size()){
-        
-        if (array1[i].key < array2[j].key) {
-            Result[k] = array1[i];
-            i++;
-            k++;
-        }
-        else if (array1[i].key > array2[j].key) {
-            Result[k] = array2[j];
-            j++;
-            k++;
-        }
-        // If a duplicate is found, add the newest one and ignore the other one
-        else{
-            Result[k] = array2[j];
-            i++;
-            k++;
-            j++;
-            duplicatecount++;
-        }
-    }
-    
-    // if only one of the two arrays have elements left, add them to the end of the result array.
-    while (i < array1.size()){
-          Result[k] = array1[i];
-          i++;
-          k++;
-    } 
-    while (j < array2.size()){
-          Result[k] = array2[j];
-          j++;
-          k++;
-    } 
-    
-    if (duplicatecount > 0) {
-        vector<KeyValuePair> finalRes(Result.size() - duplicatecount); 
-        for (int q = 0; q < finalRes.size(); q++){
-            finalRes[q] = Result[q];
-        }
-        return finalRes;
-    } else {
-        return Result;
-    }
 }

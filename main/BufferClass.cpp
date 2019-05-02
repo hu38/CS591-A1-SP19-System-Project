@@ -47,6 +47,10 @@ void BufferClass::insert(int key, string value, bool flag) {
     }
 }
 
+bool fexists(const char *filename) {
+  std::ifstream ifile(filename);
+  return (bool)ifile;
+}
 /**
  * flushes filled buffer data into the first level by creating a binary file. manifest file will be updated
  * 
@@ -55,10 +59,6 @@ void BufferClass::insert(int key, string value, bool flag) {
  * @param[levelSize] how many pages are in a level. it should be 1 all the time in leveling.
  * @return a placeholder string for no apparent purpose
  */
-bool fexists(const char *filename) {
-  std::ifstream ifile(filename);
-  return (bool)ifile;
-}
 int BufferClass::flushLevel(int levelNumber) {
 
     vector<KeyValuePair> ret;
@@ -105,9 +105,9 @@ int BufferClass::flushLevel(int levelNumber) {
     }
     bufferFile.close();
     remove(prevFile);
-    // for (int i=0 ; i < ret.size(); i++) {
-    //     cout << "readFile ret has key " << to_string(ret[i].key) << " - " << ret[i].value << endl;
-    // }
+    for (int i=0 ; i < ret.size(); i++) {
+        cout << "readFile ret has key " << to_string(ret[i].key) << " - " << ret[i].value << endl;
+    }
     smallest = ret[0].key;
     largest = ret.back().key;
     // cout << ret.back().key << " - " << ret[ret.size()].key << " or " << ret[ret.size() - 1].key << endl;
@@ -130,9 +130,6 @@ string BufferClass::flushTier(int numberOfTiersInLevel1) {
     bufferFile.close();
     return NewRecordName;
 }
-
-
-
 
 /**
  * parses a file that stores each flushed buffer data into a vector of KeyValuePair
@@ -251,12 +248,12 @@ string BufferClass::searchKeyInBuffer(int key) {
  * @param void
  * @return current working directory path in form of string
  */
-string BufferClass::GetCurrentWorkingDir() {
-    char buff[FILENAME_MAX];
-    GetCurrentDir( buff, FILENAME_MAX );
-    std::string current_working_dir(buff);
-    return current_working_dir;
-}
+// string BufferClass::GetCurrentWorkingDir() {
+//     char buff[FILENAME_MAX];
+//     GetCurrentDir( buff, FILENAME_MAX );
+//     std::string current_working_dir(buff);
+//     return current_working_dir;
+// }
 
 /**
  * @depricated
@@ -266,107 +263,25 @@ string BufferClass::GetCurrentWorkingDir() {
  * @param[*dirname:required] current local directory pointer
  * @return the current number of files for level 1
  */
-int BufferClass::explore(const char *dirname, int currentLevel) {
-    struct dirent *entry;
-    DIR *dir = opendir(dirname);
-    int cur = 1;
-    if (dir == NULL) {
-      return cur;
-    }
+// int BufferClass::explore(const char *dirname, int currentLevel) {
+//     struct dirent *entry;
+//     DIR *dir = opendir(dirname);
+//     int cur = 1;
+//     if (dir == NULL) {
+//       return cur;
+//     }
     
-    while ((entry = readdir(dir)) != NULL) {
-        if (entry -> d_name[0] != '.') {
-            string path = string(entry -> d_name);
-            if (path.substr(0, 7) == to_string(currentLevel)) {
-                if (cur < path.at(13)) {
-                    cur = stoi(string() + path.at(13));
-                }
-            }
-        }
-    }
-    closedir(dir);
+//     while ((entry = readdir(dir)) != NULL) {
+//         if (entry -> d_name[0] != '.') {
+//             string path = string(entry -> d_name);
+//             if (path.substr(0, 7) == to_string(currentLevel)) {
+//                 if (cur < path.at(13)) {
+//                     cur = stoi(string() + path.at(13));
+//                 }
+//             }
+//         }
+//     }
+//     closedir(dir);
 
-    return cur;
-}
-
-/**
- * prints out the entire buffer class
- * 
- * @param void
- * @return void
- */
-void BufferClass::printBC() {
-    cout << "__________________" << endl;
-    cout << "| key   |  value |" << endl;
-    for (int i=0; i < BUFFER_SIZE ; i++) {
-        cout << "|" << to_string(keyValueArray[i].key) + "\t" <<  "|" << keyValueArray[i].value + "\t" <<  " |" << endl;
-    }
-    cout << "-----------------" << endl;
-    return;
-}
-
-///////////////////////////////////////////experiement code////////////////////////////////////////////////////
-void BufferClass::writeToFile(string filename, vector<KeyValuePair> data) {
-    // ofstream newFile;
-    // newFile.open(filename, ios::out | ios::binary);
-    // newFile.write(reinterpret_cast<char*>(&data), sizeof(data));
-    // newFile.close();
-    std::ofstream newFile (filename);
-    for (int i=0; i < data.size() ; i++) {
-        int key = data[i].key;
-        string value = data[i].value;
-        bool flag = data[i].flag;
-        newFile << key << " " << value << " " << flag << "\n";
-    }
-    newFile.close();
-}
-
-bool sorter(KeyValuePair lhs, KeyValuePair rhs) {
-    // comparator for KeyValuePair struct. compare based on key by asec order
-    return lhs.key < rhs.key; 
-}
-
-int BufferClass::checkKey(int key) {
-    // binary search function accommadated for an array of struct
-    std::vector<KeyValuePair> vec(keyValueArray, keyValueArray + BUFFER_SIZE);
-    return std::binary_search(
-        vec.begin(),
-        vec.end(),
-        (KeyValuePair) {key, },
-        sorter
-    );
-}
-
-void BufferClass::sortBC() {
-    std::sort(keyValueArray, keyValueArray + BUFFER_SIZE, sorter);
-}
-
-int BufferClass::getCurrentSize() {
-    return(currentSize);
-}
-
-/**
- * NOT IN USE
- */
-int BufferClass::flush(int currentLevel) {
-    string curDir = GetCurrentWorkingDir() + "/lsm_data";
-    char *cstr = &curDir[0u];
-    // get the current file count for level 1 from manifest file and increment it
-    int nextIter = explore(cstr, currentLevel) + 1; 
-    // int nextIter = currentSize + 1;
-    string filename = string() + "lsm_data/level_1_file_" + std::to_string(nextIter) + ".txt";
-    // create a file to store buffer
-    FILE *outfile; 
-    outfile = fopen("lsm_data/level_1_file_2.txt", "w"); 
-    if (outfile == NULL) 
-    { 
-        fprintf(stderr, "\nError opend file\n"); 
-        exit (1); 
-    }
-    fwrite(&keyValueArray, sizeof(KeyValuePair), BUFFER_SIZE, outfile); 
-    // reset BufferClass
-    currentSize = 0;
-    fclose (outfile);
-
-    return nextIter;
-}
+//     return cur;
+// }
