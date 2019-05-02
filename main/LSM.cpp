@@ -19,7 +19,7 @@ void LSM::driverLeveling(int operation, int key, string value, int targetKey, in
 
     switch (operation) {
         case 0: {
-            buffer.insert(key, value, false);
+            buffer.insert(key, value, false, Q);
             int totalPairs;
             // cout << "inserting " << key << " and value " << value << endl;
             if (buffer.currentSize == Q) {
@@ -88,10 +88,10 @@ void LSM::driverLeveling(int operation, int key, string value, int targetKey, in
             break;
         }
         case 1: {
-            buffer.insert(key, "", true);
+            buffer.insert(key, "", true, Q);
             int totalPairs;
             // cout << "inserting " << key << " and value " << value << endl;
-            if (buffer.currentSize == BUFFER_SIZE) {
+            if (buffer.currentSize == Q) {
                 // first we insert new buffer to level 1 + sortMerge with current level data
                 totalPairs = buffer.flushLevel(1); 
                 buffer.currentSize = 0;
@@ -188,13 +188,15 @@ void LSM::driverLeveling(int operation, int key, string value, int targetKey, in
 }
 
 void LSM::driverTiering(int operation, int key, string value, int targetKey, int lowerBound, int upperBound, int Q, int T) {
+    
     switch (operation) {
         case 0: {
-            buffer.insert(key, value, false);
-            if (buffer.currentSize == Q) {
+            buffer.insert(key, value, false, Q);
+            if (buffer.currentSize >= Q) { 
                 string newfile;
                 if (LSMTier.empty()){
                     newfile = buffer.flushTier(0);
+                    
                 }
                 else{
                     newfile = buffer.flushTier(LSMTier[0].tierData.size());
@@ -219,7 +221,7 @@ void LSM::driverTiering(int operation, int key, string value, int targetKey, int
             break;
         }
         case 1: {
-            buffer.insert(key, "", true);
+            buffer.insert(key, "", true, Q);
             if (buffer.currentSize == Q) {
                 string newfile;
                 if (LSMTier.empty()){

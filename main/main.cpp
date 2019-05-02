@@ -95,19 +95,21 @@ int main(int argc, char *argv[]) {
     LSM lsm;
 
     // Number of Instructions in Workload
-    int total = 1000000;
+    int total = 20;
 
     // Build a workload according to size and kind of workload wanted, store it in workload.txt
     buildWorkload(workload_kind, total);
 
     // iterate through the workload and process it via driver 
-    ifstream infile("workload1.txt");
+    ifstream infile("all-insert-workload.txt");
     int operation, key1, key2;
     string value;
     
     chrono::duration<double> elapsed;
     if (Policy == "t"){
+        
         while (infile >> operation >> key1 >> key2 >> value){
+            
             TIMER::time_point start = TIMER::now();
             lsm.driverTiering(operation, key1, value, key1, key1, key2, Q, T);
             TIMER::time_point ending = TIMER::now();

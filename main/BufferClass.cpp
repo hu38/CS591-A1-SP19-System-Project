@@ -9,13 +9,13 @@ using namespace std;
  * @param[flag:required] indicates if key is being deleted, a tombstone marker
  * @return no returns, simply updates the buffer 
  */
-void BufferClass::insert(int key, string value, bool flag) { 
+void BufferClass::insert(int key, string value, bool flag, int Q) { 
     // for the first element, simply add it to position 0 and increase the current size
     if (currentSize == 0){
-        keyValueArray[0] = (KeyValuePair) {key, value, flag};
+        keyValueArray.push_back((KeyValuePair) {key, value, flag});
         currentSize++;
         totalNonDup++;
-    } else if (currentSize < BUFFER_SIZE) {
+    } else if (currentSize <= Q) {
         // iterate through the entire array until finding a key larger than the new key or getting to the end
         for (int i = 0; i < currentSize; i++) {
             // if a duplicate is found, subsitute the new value and flag
@@ -25,26 +25,19 @@ void BufferClass::insert(int key, string value, bool flag) {
                 break;
             // if a larger key is found, insert the new key,value pair and shift all other elements down
             } else if (keyValueArray[i].key > key){
-                for(int j = BUFFER_SIZE-1; j > i; j--){
-                    keyValueArray[j]=keyValueArray[j-1];
-                    }
-                keyValueArray[i] = (KeyValuePair) {key, value, flag};
+
+                keyValueArray.insert(keyValueArray.begin() + i, (KeyValuePair) {key, value, flag});
                 totalNonDup++;
                 currentSize++;
                 break;
             // if the end of the buffer is reached, simply add the element to the end
             } else if (i == currentSize - 1){
-                keyValueArray[currentSize] = (KeyValuePair) {key, value, flag};
-                totalNonDup++;
+                keyValueArray.push_back((KeyValuePair) {key, value, flag});
                 currentSize++;
-                break;
+                totalNonDup++;
             }
         }
-    } else {
-        currentSize = 0;
-        totalNonDup = 0;
-        // if the current size reaches the limit, flush in driver
-    }
+    } 
 }
 
 bool fexists(const char *filename) {
@@ -67,7 +60,7 @@ int BufferClass::flushLevel(int levelNumber) {
     // cur target level
     string curRecordName = "lsm_data/level_" + to_string(levelNumber) + "_file_1.txt";
     // buffer data
-    vector<KeyValuePair> bufferKV(keyValueArray, keyValueArray + BUFFER_SIZE);
+    vector<KeyValuePair> bufferKV = keyValueArray;
     // cout << "bufferKV has " << bufferKV.size() << endl;
     // get the existing level 1 key-value data if there is any.
     char *prevFile = &prevRecordName[0u];
@@ -221,7 +214,7 @@ vector<KeyValuePair> BufferClass::sortMerge(vector<KeyValuePair> array1, vector<
  * @see https://academy.realm.io/posts/how-we-beat-cpp-stl-binary-search/
  */
 string BufferClass::searchKeyInBuffer(int key) {
-    vector<KeyValuePair> vec (keyValueArray, keyValueArray + BUFFER_SIZE);
+    vector<KeyValuePair> vec = keyValueArray;
     int size = vec.size();
     int low = 0;
     

@@ -18,8 +18,9 @@
 #include <cstdlib>
 using namespace std;
 
-const int BUFFER_SIZE = 10;
 const int SIZE_RATIO = 4;
+const int BUFFER_SIZE = 1000;
+
 struct stat info;
 struct KeyValuePair
 {   int key;
@@ -30,14 +31,14 @@ struct KeyValuePair
 class BufferClass {
 	public:
                 //TODO: upgrade to skiplist
-                KeyValuePair keyValueArray[BUFFER_SIZE];
+                vector<KeyValuePair> keyValueArray;
                 int currentSize; 
                 int smallest; // keyRange[0]
                 int largest; // keyRange[1]
                 int totalNonDup; // total non-duplicated key-value pairs
 
                 int getCurrentSize();
-                void insert(int key, string value, bool flag);
+                void insert(int key, string value, bool flag, int Q);
                 int flushLevel(int currentLevel);
                 string flushTier(int numberOfTiersInLevel1);
                 void writeToFile(string filename, vector<KeyValuePair> data);
