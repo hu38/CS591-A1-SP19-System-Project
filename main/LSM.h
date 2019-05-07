@@ -38,7 +38,7 @@ class LSM {
         string pointLookupTier(int key);
         vector<string> rangeLookupTier(int lowerBoundKey, int upperBoundKey);
         
-        int findLevelToInsert(int Q, int T);
+        int findLevelToInsert(int Q, int T, int totalPairs);
         string searchKeyInFile(string filename, int key);
         int searchKey(vector<KeyValuePair> vec, int key);
         void insertTier(string filename, int level);

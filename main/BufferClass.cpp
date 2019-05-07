@@ -53,6 +53,115 @@ bool fexists(const char *filename) {
  * @param[levelSize] how many pages are in a level. it should be 1 all the time in leveling.
  * @return a placeholder string for no apparent purpose
  */
+int BufferClass::flushFirstLevel() {
+    // cout << "S----------------------------------" << endl;
+    // cout << "I'm getting the levelnumber as " << levelNumber << endl;
+    vector<KeyValuePair> ret;
+    // previous level
+    // string prevRecordName = "lsm_data/level_" + to_string(levelNumber + 1) + "_file_1.txt";
+    // cur target level
+    string curRecordName = "lsm_data/level_" + to_string(1) + "_file_1.txt";
+    // buffer data
+    vector<KeyValuePair> bufferKV = keyValueArray;
+    // cout << "bufferKV has " << bufferKV.size() << endl;
+    // get the existing level 1 key-value data if there is any.
+    // char *prevFile = &prevRecordName[0u];
+    char *curFile = &curRecordName[0u];
+    // cout << fexists(prevFile) << " --- " << fexists(curFile) << endl;
+    // if both previous and presentn level files exist
+    // if (fexists(prevFile) == 1 and fexists(curFile) == 1) {
+    //     vector<KeyValuePair> prevKV = readFile(prevRecordName);
+    //     vector<KeyValuePair> curKV = readFile(curRecordName);
+    //     // sort merge existing and new data to form a new leveling data
+    //     ret = sortMerge(prevKV, curKV);
+    //     ret = sortMerge(ret, bufferKV);
+    //     // cout << "prevKV " << prevRecordName << " has " << prevKV.size() << endl;
+    //     // cout << "curKV " << curRecordName <<  " has " << curKV.size() << endl;
+    // } else if (fexists(prevFile) == 1 and fexists(curFile) == 0) {
+    //     vector<KeyValuePair> prevKV = readFile(prevRecordName);
+    //     ret = sortMerge(prevKV, bufferKV);
+    //     // cout << "prevKV " << prevRecordName << " has " << prevKV.size() << endl;
+    if (fexists(curFile) == 1) {
+        vector<KeyValuePair> curKV = readFile(curRecordName);
+        ret = sortMerge(curKV, bufferKV);
+        // cout << "curKV " << curRecordName <<  " has " << curKV.size() << endl;
+    } else {
+        ret = bufferKV; 
+    }
+    // cout << "merged ret has " << ret.size() << endl;
+    // put the updated level 1 data to the original file "level_<level_number>_file_1.txt"
+    ofstream bufferFile (curRecordName);
+    // cout << "merged ret to " << curRecordName << endl;
+    for (int i=0; i < ret.size() ; i++) {
+        int key = ret[i].key;
+        string value = ret[i].value;
+        bool flag = ret[i].flag;
+        bufferFile << key << " " << value << " " << flag << "\n";
+    }
+    bufferFile.close();
+
+    // remove(prevFile);
+    smallest = ret[0].key;
+    largest = ret.back().key;
+    // cout << "----------------------------------E" << endl;
+    // cout << ret.back().key << " - " << ret[ret.size()].key << " or " << ret[ret.size() - 1].key << endl;
+
+    return ret.size();
+}
+
+int BufferClass::flushLevels(int levelNumber) {
+    // TIMER::time_point start = TIMER::now();
+    vector<KeyValuePair> ret;
+    vector<string> files;
+    int count = 0;
+    for (int i=0; i<levelNumber; i++) {
+        string filename = "lsm_data/level_" + to_string(i) + "_file_1.txt";
+        if (fexists(&filename[0u])) files.push_back(filename);
+    }
+    
+    if (files.size() < 1) return ret.size();
+    do {
+        if (count == 0 and files.size() == 1) {   
+            vector<KeyValuePair> vec1 = readFile(files[count]);
+            ret = vec1;
+            break;
+        }
+        else if (count == 0 and files.size() > 1) {
+            vector<KeyValuePair> vec1 = readFile(files[count]);
+            vector<KeyValuePair> vec2 = readFile(files[count + 1]);
+            ret = sortMerge(vec1, vec2);
+        }
+        else {
+            vector<KeyValuePair> vec3 = readFile(files[count]);
+            ret = vec3.size() > 0 ? sortMerge(ret, vec3) : ret;
+        }
+        count += 1;
+    } while (count < files.size());
+
+    for (int i=0; i<=files.size(); i++) {
+        remove(&files[i][0u]);
+    }
+
+    string filename = "lsm_data/level_" + to_string(levelNumber + 1) + "_file_1.txt";
+    ofstream bufferFile (filename);
+    // cout << "merged ret to " << curRecordName << endl;
+    for (int i=0; i < ret.size() ; i++) {
+        int key = ret[i].key;
+        string value = ret[i].value;
+        bool flag = ret[i].flag;
+        bufferFile << key << " " << value << " " << flag << "\n";
+    }
+    bufferFile.close();
+
+    smallest = ret[0].key;
+    largest = ret.back().key;
+
+    // TIMER::time_point ending = TIMER::now();
+    // chrono::duration<double> elapsed = (ending - start);
+    // cout << "each: " << elapsed.count() << endl;
+    return ret.size();
+}
+
 int BufferClass::flushLevel(int levelNumber) {
     // cout << "S----------------------------------" << endl;
     // cout << "I'm getting the levelnumber as " << levelNumber << endl;
@@ -60,7 +169,7 @@ int BufferClass::flushLevel(int levelNumber) {
     // previous level
     string prevRecordName = "lsm_data/level_" + to_string(levelNumber + 1) + "_file_1.txt";
     // cur target level
-    string curRecordName = "lsm_data/level_" + to_string(levelNumber + 2) + "_file_1.txt";
+    string curRecordName = "lsm_data/level_" + to_string(1) + "_file_1.txt";
     // buffer data
     vector<KeyValuePair> bufferKV = keyValueArray;
     // cout << "bufferKV has " << bufferKV.size() << endl;
@@ -86,8 +195,7 @@ int BufferClass::flushLevel(int levelNumber) {
         ret = sortMerge(curKV, bufferKV);
         // cout << "curKV " << curRecordName <<  " has " << curKV.size() << endl;
     } else {
-        ret = bufferKV;
-        // cout << "so I'm here?" << endl;
+        ret = bufferKV; 
     }
     // cout << "merged ret has " << ret.size() << endl;
     // put the updated level 1 data to the original file "level_<level_number>_file_1.txt"
