@@ -54,12 +54,13 @@ bool fexists(const char *filename) {
  * @return a placeholder string for no apparent purpose
  */
 int BufferClass::flushLevel(int levelNumber) {
-
+    // cout << "S----------------------------------" << endl;
+    // cout << "I'm getting the levelnumber as " << levelNumber << endl;
     vector<KeyValuePair> ret;
     // previous level
-    string prevRecordName = "lsm_data/level_" + to_string(levelNumber - 1) + "_file_1.txt";
+    string prevRecordName = "lsm_data/level_" + to_string(levelNumber + 1) + "_file_1.txt";
     // cur target level
-    string curRecordName = "lsm_data/level_" + to_string(levelNumber) + "_file_1.txt";
+    string curRecordName = "lsm_data/level_" + to_string(levelNumber + 2) + "_file_1.txt";
     // buffer data
     vector<KeyValuePair> bufferKV = keyValueArray;
     // cout << "bufferKV has " << bufferKV.size() << endl;
@@ -99,23 +100,11 @@ int BufferClass::flushLevel(int levelNumber) {
         bufferFile << key << " " << value << " " << flag << "\n";
     }
     bufferFile.close();
-    
-    // FILE *bufferFile;
-    // bufferFile = std::fopen (curFile, "w");
-    // if (bufferFile == NULL) {
-    //     fprintf(stderr, "\nError opend file\n"); 
-    //     exit (1); 
-    // }
-    // fwrite (&ret, sizeof(ret), 1, bufferFile); 
-    // fclose (bufferFile);
-
-    // for (int i=0; i<ret.size(); i++) {
-    //     cout << "readFile ret has key " << to_string(ret[i].key) << " - " << ret[i].value << endl;
-    // }
 
     remove(prevFile);
     smallest = ret[0].key;
     largest = ret.back().key;
+    // cout << "----------------------------------E" << endl;
     // cout << ret.back().key << " - " << ret[ret.size()].key << " or " << ret[ret.size() - 1].key << endl;
 
     return ret.size();

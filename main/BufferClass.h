@@ -19,17 +19,20 @@
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
+#include <stddef.h>
 using namespace std;
 
 const int SIZE_RATIO = 4;
 const int BUFFER_SIZE = 100;
 
 struct stat info;
-typedef struct KeyValuePair
+
+#pragma pack(1)
+struct KeyValuePair
 {   int key;
     string value;
     bool flag;
-} KVPair;
+};
 
 class BufferClass {
 	public:
