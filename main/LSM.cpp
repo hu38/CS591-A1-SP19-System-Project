@@ -1,6 +1,42 @@
 #include "LSM.h"
 using namespace std;
 
+int LSM::findLevelToInsert(int Q, int T, int totalPairs) {
+    // for each existing levels (potentially a new level) in LSM tree, we check if it can hold a new run
+    int i = 0;
+    int count = 0;
+    while (i <= LSMLevel.size()) {
+        levelMetadata tmp = LSMLevel[i];    
+        count += tmp.totalNumberOfPairs;
+        // cout << "level " << i << " ranges from " << tmp.keyRange[0] << " to " << tmp.keyRange[1] << " with " << tmp.totalNumberOfPairs << " pairs." << endl; 
+        tmp.keyRange[0] = 0;
+        tmp.keyRange[1] = 0;
+        tmp.totalNumberOfPairs = 0;
+        LSMLevel[i] = tmp;
+        // if the level's total num of pairs from current interation exceeds its limit on max num of pairs
+        if ((count + totalPairs) >= (Q * pow(T, i))) {
+            // checking if existing levels can handle this new buffer insertion
+            if ((i + 1) < LSMLevel.size()) {
+                // cout << "UPDATE " << i << endl; 
+                i++;
+            // if not, we're creating a new level in the end to hold everything
+            } else {
+                // cout << "CREATE " << i + 1 << endl; 
+                levelMetadata newLevel;
+                string filename = "lsm_data/level_" + to_string(i + 2) + "_file_1.txt";
+                newLevel.levelNumber = i + 1;
+                newLevel.filename = filename;
+                newLevel.keyRange[0] = 0;
+                newLevel.keyRange[1] = 0;
+                LSMLevel.push_back(newLevel);
+                i++;
+            };
+        } else return i;
+    }
+
+    return i;
+}
+
 /**
  * driver function that takes one single instruction from workload in leveling
  * 
@@ -14,144 +50,73 @@ using namespace std;
  * @return void
  */
 void LSM::driverLeveling(int operation, int key, string value, int targetKey, int lowerBound, int upperBound, int Q, int T) {
-    // int bufferSize = buffer.,,currentSize;
     bool flushed = false;
+    int totalPairs;
     switch (operation) {
         case 0: {
             buffer.insert(key, value, false, Q);
-            int totalPairs;
-            // cout << "inserting " << key << " and value " << value << ". buffersize: " << buffer.currentSize << endl;
+            // flush buffer data to the first level
             if (buffer.currentSize >= Q) {
-                // first we insert new buffer to level 1 + sortMerge with current level data
-                totalPairs = buffer.flushLevel(1); 
+                // reset buffer
                 buffer.currentSize = 0;
-                flushed = true;
-                // cout << "FLUSHING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
-            }
-            if (flushed == true) {
-                // to check if the new buffer needs to go to other levels
-                int numOfLevels = LSMLevel.size();
-                levelMetadata curLevel;
-                // if no level in LSM yet
-                if (numOfLevels == 0) {
-                    numOfLevels += 1;
-                    currentLevel += 1;
+                // - if LSM tree yet has any levels
+                if (LSMLevel.size() == 0) {
+                    totalPairs = buffer.flushFirstLevel();
+                    levelMetadata firstLevel;
                     string filename = "lsm_data/level_" + to_string(1) + "_file_1.txt";
-                    int ranges[2];
-                    levelMetadata curLevel = {currentLevel, filename, *ranges, totalPairs};
-                    curLevel.totalNumberOfPairs = totalPairs;
-                    curLevel.keyRange[0] = buffer.smallest;
-                    curLevel.keyRange[1] = buffer.largest;
-                    LSMLevel.push_back(curLevel);
-                // } else if (numOfLevels == currentLevel) {
+                    firstLevel.totalNumberOfPairs = totalPairs;
+                    firstLevel.keyRange[0] = buffer.smallest;
+                    firstLevel.keyRange[1] = buffer.largest;
+                    firstLevel.levelNumber = 0;
+                    firstLevel.filename = filename;
+                    LSMLevel.push_back(firstLevel);
+                // - if LSM has at least one level
                 } else {
-                    curLevel = LSMLevel[currentLevel-1];
-                    curLevel.totalNumberOfPairs = totalPairs;
-                    // cout << "buffer lower bound = " << buffer.smallest << ", previous lower = " << curLevel.keyRange[0] << "    " <<endl; 
-                    // cout << "buffer upper bound = " << buffer.largest << ", previous upper = " << curLevel.keyRange[1] << "    " << endl; 
-                    curLevel.keyRange[0] = buffer.smallest;
-                    curLevel.keyRange[1] = buffer.largest;
-                    // curLevel.keyRange[0] = (buffer.smallest > curLevel.keyRange[0]) ? curLevel.keyRange[0] : buffer.smallest;
-                    // curLevel.keyRange[1] = (buffer.largest < curLevel.keyRange[1]) ? curLevel.keyRange[1] : buffer.largest;
-                    // cout << "!!!!!! now lower = " << curLevel.keyRange[0] << ",  and higer = " << curLevel.keyRange[1] << " !!!!!!" << endl; 
-                    LSMLevel[currentLevel-1] = curLevel;
-                }
-                currentLevel = numOfLevels;
-
-                for (int i = currentLevel - 1; i <= numOfLevels; i++) {
-                    levelMetadata tmp = LSMLevel[i];
-                    // if exceeds the size limit for each level
-                    // cout << "at level " << tmp.levelNumber << " w limit " << BUFFER_SIZE * pow(SIZE_RATIO, i+1) << ". cur " << tmp.totalNumberOfPairs << endl;
-                    if (tmp.totalNumberOfPairs >= (Q * pow(T, i+1))) {
-                        // we flush to the next level until last level of this tree
-                        if (i > 0 and i < numOfLevels - 1) {
-                            // cout << "level " << i << " at " << LSMLevel.size() << " not full" << endl;
-                            buffer.flushLevel(i + 1);
-                        }
-                        // if it's the last level and we still want to flush, we create a new level and put things there
-                        else {
-                            
-                            totalPairs = buffer.flushLevel(i+2);
-                            string filename = "lsm_data/level_" + to_string(i+2) + "_file_1.txt";
-                            // cout << "--------level " << currentLevel + 1 << " ranges from " << buffer.smallest << " to " << buffer.largest << "-------"<< endl; 
-                            int ranges[] = {buffer.smallest, buffer.largest};
-                            levelMetadata newLevel = {currentLevel+1, filename, *ranges, totalPairs};
-                            LSMLevel.push_back(newLevel);
-                            // cout << "LAST level, add level at " << LSMLevel.size() << endl;
-                            currentLevel++;
-                        }
-                    } else {
-                        break;
-                    }
+                    totalPairs = buffer.flushFirstLevel();
+                    LSMLevel[0].totalNumberOfPairs = totalPairs;
+                    LSMLevel[0].keyRange[0] = (buffer.smallest < LSMLevel[0].keyRange[0]) ? buffer.smallest : LSMLevel[0].keyRange[0];
+                    LSMLevel[0].keyRange[1] = (buffer.largest > LSMLevel[0].keyRange[1]) ? buffer.largest : LSMLevel[0].keyRange[1];
+                    int levelToInsert = findLevelToInsert(Q, T, totalPairs);
+                    if (levelToInsert + 1 == LSMLevel.size()) 
+                        totalPairs = buffer.flushLevels(levelToInsert);
+                    else totalPairs = buffer.flushLevel(levelToInsert);
+                    LSMLevel[levelToInsert].totalNumberOfPairs = totalPairs;
+                    LSMLevel[levelToInsert].keyRange[0] = buffer.smallest;
+                    LSMLevel[levelToInsert].keyRange[1] = buffer.largest;
                 }
             }
             break;
         }
         case 1: {
             buffer.insert(key, value, true, Q);
-            int totalPairs;
-            // cout << "inserting " << key << " and value " << value << endl;
-            if (buffer.currentSize == Q) {
-                // first we insert new buffer to level 1 + sortMerge with current level data
-                totalPairs = buffer.flushLevel(1); 
+            // flush buffer data to the first level
+            if (buffer.currentSize >= Q) {
+                // reset buffer
                 buffer.currentSize = 0;
-                flushed = true;
-            }
-            if (flushed == true) {
-                // to check if the new buffer needs to go to other levels
-                int numOfLevels = LSMLevel.size();
-                levelMetadata curLevel;
-                // if no level in LSM yet
-                if (numOfLevels == 0) {
-                    numOfLevels += 1;
-                    currentLevel += 1;
+                // - if LSM tree yet has any levels
+                if (LSMLevel.size() == 0) {
+                    totalPairs = buffer.flushFirstLevel();
+                    levelMetadata firstLevel;
                     string filename = "lsm_data/level_" + to_string(1) + "_file_1.txt";
-                    int ranges[2];
-                    levelMetadata curLevel = {currentLevel, filename, *ranges, totalPairs};
-                    curLevel.totalNumberOfPairs = totalPairs;
-                    curLevel.keyRange[0] = buffer.smallest;
-                    curLevel.keyRange[1] = buffer.largest;
-                    LSMLevel.push_back(curLevel);
-                // } else if (numOfLevels == currentLevel) {
+                    firstLevel.totalNumberOfPairs = totalPairs;
+                    firstLevel.keyRange[0] = buffer.smallest;
+                    firstLevel.keyRange[1] = buffer.largest;
+                    firstLevel.levelNumber = 0;
+                    firstLevel.filename = filename;
+                    LSMLevel.push_back(firstLevel);
+                // - if LSM has at least one level
                 } else {
-                    curLevel = LSMLevel[currentLevel-1];
-                    curLevel.totalNumberOfPairs = totalPairs;
-                    // cout << "buffer lower bound = " << buffer.smallest << ", previous lower = " << curLevel.keyRange[0] << "    " <<endl; 
-                    // cout << "buffer upper bound = " << buffer.largest << ", previous upper = " << curLevel.keyRange[1] << "    " << endl; 
-                    curLevel.keyRange[0] = buffer.smallest;
-                    curLevel.keyRange[1] = buffer.largest;
-                    // curLevel.keyRange[0] = (buffer.smallest > curLevel.keyRange[0]) ? curLevel.keyRange[0] : buffer.smallest;
-                    // curLevel.keyRange[1] = (buffer.largest < curLevel.keyRange[1]) ? curLevel.keyRange[1] : buffer.largest;
-                    // cout << "!!!!!! now lower = " << curLevel.keyRange[0] << ",  and higer = " << curLevel.keyRange[1] << " !!!!!!" << endl; 
-                    LSMLevel[currentLevel-1] = curLevel;
-                }
-                currentLevel = numOfLevels;
-
-                for (int i = currentLevel - 1; i <= numOfLevels; i++) {
-                    levelMetadata tmp = LSMLevel[i];
-                    // if exceeds the size limit for each level
-                    // cout << "at level " << tmp.levelNumber << " w limit " << BUFFER_SIZE * pow(SIZE_RATIO, i+1) << ". cur " << tmp.totalNumberOfPairs << endl;
-                    if (tmp.totalNumberOfPairs >= (Q * pow(T, i+1))) {
-                        // we flush to the next level until last level of this tree
-                        if (i > 0 and i < numOfLevels - 1) {
-                            // cout << "level " << i << " at " << LSMLevel.size() << " not full" << endl;
-                            buffer.flushLevel(i + 1);
-                        }
-                        // if it's the last level and we still want to flush, we create a new level and put things there
-                        else {
-                            
-                            totalPairs = buffer.flushLevel(i+2);
-                            string filename = "lsm_data/level_" + to_string(i+2) + "_file_1.txt";
-                            // cout << "--------level " << currentLevel + 1 << " ranges from " << buffer.smallest << " to " << buffer.largest << "-------"<< endl; 
-                            int ranges[] = {buffer.smallest, buffer.largest};
-                            levelMetadata newLevel = {currentLevel+1, filename, *ranges, totalPairs};
-                            LSMLevel.push_back(newLevel);
-                            // cout << "LAST level, add level at " << LSMLevel.size() << endl;
-                            currentLevel++;
-                        }
-                    } else {
-                        break;
-                    }
+                    totalPairs = buffer.flushFirstLevel();
+                    LSMLevel[0].totalNumberOfPairs = totalPairs;
+                    LSMLevel[0].keyRange[0] = (buffer.smallest < LSMLevel[0].keyRange[0]) ? buffer.smallest : LSMLevel[0].keyRange[0];
+                    LSMLevel[0].keyRange[1] = (buffer.largest > LSMLevel[0].keyRange[1]) ? buffer.largest : LSMLevel[0].keyRange[1];
+                    int levelToInsert = findLevelToInsert(Q, T, totalPairs);
+                    if (levelToInsert + 1 == LSMLevel.size()) 
+                        totalPairs = buffer.flushLevels(levelToInsert);
+                    else totalPairs = buffer.flushLevel(levelToInsert);
+                    LSMLevel[levelToInsert].totalNumberOfPairs = totalPairs;
+                    LSMLevel[levelToInsert].keyRange[0] = buffer.smallest;
+                    LSMLevel[levelToInsert].keyRange[1] = buffer.largest;
                 }
             }
             break;
@@ -462,7 +427,7 @@ vector<string> LSM::rangeLookupTier(int lowerBoundKey, int upperBoundKey) {
 
     // 2. combine all KeyValuePairs and then sort merge them - O(logN * logN)
     if (filenames.size() < 1) return ret;
-    cout << "found " << filenames.size() << " files" << endl;
+    // cout << "found " << filenames.size() << " files" << endl;
     int count = 0;
     vector<KeyValuePair> tmp;
     do {
@@ -501,7 +466,7 @@ vector<string> LSM::rangeLookupLevel(int lowerBoundKey, int upperBoundKey) {
     upperBoundKey = (lowerBoundKey < upperBoundKey) ? upperBoundKey : lowerBoundKey;
     vector<string> ret;
     // 1. get the potential level's filenames - constant time k
-    if (LSMTier.size() < 1 or (lowerBoundKey == upperBoundKey == 0)) return ret;
+    if (LSMLevel.size() < 1 or (lowerBoundKey == upperBoundKey == 0)) return ret;
     vector<string> filenames;
     for (int levelNumber = 0; levelNumber < LSMLevel.size(); levelNumber++) {
         levelMetadata curLevel = LSMLevel[levelNumber];
@@ -574,4 +539,57 @@ int LSM::searchKey(vector<KeyValuePair> vec, int key) {
     }
     
     return low;
+}
+
+vector<KeyValuePair> LSM::sortMerge(vector<KeyValuePair> array1, vector<KeyValuePair> array2) {
+    // Initialize vecture of result
+    vector<KeyValuePair> Result(array1.size() + array2.size());
+    int i = 0, j = 0, k = 0;
+    int duplicatecount = 0;
+    
+    // While both arrays have elements left to iterate through, compare the next element in each array and add
+    // the one with the smallest key to the result array
+    while (i < array1.size() && j < array2.size()){
+        
+        if (array1[i].key < array2[j].key) {
+            Result[k] = array1[i];
+            i++;
+            k++;
+        }
+        else if (array1[i].key > array2[j].key) {
+            Result[k] = array2[j];
+            j++;
+            k++;
+        }
+        // If a duplicate is found, add the newest one and ignore the other one
+        else{
+            Result[k] = array2[j];
+            i++;
+            k++;
+            j++;
+            duplicatecount++;
+        }
+    }
+    
+    // if only one of the two arrays have elements left, add them to the end of the result array.
+    while (i < array1.size()){
+          Result[k] = array1[i];
+          i++;
+          k++;
+    } 
+    while (j < array2.size()){
+          Result[k] = array2[j];
+          j++;
+          k++;
+    } 
+    
+    if (duplicatecount > 0) {
+        vector<KeyValuePair> finalRes(Result.size() - duplicatecount); 
+        for (int q = 0; q < finalRes.size(); q++){
+            finalRes[q] = Result[q];
+        }
+        return finalRes;
+    } else {
+        return Result;
+    }
 }
