@@ -19,17 +19,20 @@
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
+#include <stddef.h>
 using namespace std;
-
+#define TIMER chrono::high_resolution_clock
 const int SIZE_RATIO = 4;
 const int BUFFER_SIZE = 100;
 
 struct stat info;
-typedef struct KeyValuePair
+
+#pragma pack(1)
+struct KeyValuePair
 {   int key;
     string value;
     bool flag;
-} KVPair;
+};
 
 class BufferClass {
 	public:
@@ -41,7 +44,9 @@ class BufferClass {
 
         int getCurrentSize();
         void insert(int key, string value, bool flag, int Q);
-        int flushLevel(int currentLevel);
+        int flushFirstLevel();
+        int flushLevel(int levelNumber);
+        int flushLevels(int levelNumber);
         string flushTier(int numberOfTiersInLevel1);
         void writeToFile(string filename, vector<KeyValuePair> data);
 

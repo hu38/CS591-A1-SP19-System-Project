@@ -1,6 +1,4 @@
 #!/bin/sh
-cd main
 mkdir lsm_data
-make main
 rm -rf lsm_data/*
-./main Insert 4 5 t
+./main Insert 50 6 t
