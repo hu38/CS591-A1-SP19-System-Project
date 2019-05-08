@@ -167,9 +167,9 @@ int BufferClass::flushLevel(int levelNumber) {
     // cout << "I'm getting the levelnumber as " << levelNumber << endl;
     vector<KeyValuePair> ret;
     // previous level
-    string prevRecordName = "lsm_data/level_" + to_string(levelNumber + 1) + "_file_1.txt";
+    string prevRecordName = "lsm_data/level_" + to_string(levelNumber) + "_file_1.txt";
     // cur target level
-    string curRecordName = "lsm_data/level_" + to_string(1) + "_file_1.txt";
+    string curRecordName = "lsm_data/level_" + to_string(levelNumber + 1) + "_file_1.txt";
     // buffer data
     vector<KeyValuePair> bufferKV = keyValueArray;
     // cout << "bufferKV has " << bufferKV.size() << endl;
