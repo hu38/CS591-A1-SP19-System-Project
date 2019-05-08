@@ -158,30 +158,28 @@ void LSM::driverLeveling(int operation, int key, string value, int targetKey, in
         }
         case 2: {
             string pointLookup = buffer.searchKeyInBuffer(targetKey);
-            if (pointLookup != "") pointLookupLevel(targetKey);
-            //     cout << "found buffer key " << targetKey << "'s value at " << pointLookup << endl;
-            // }
-            // else if (pointLookupLevel(targetKey) != "") {
-            //     pointLookup = pointLookupLevel(targetKey);
-            //     cout << "found level key " + to_string(targetKey) + "'s value at " + pointLookup  << endl;
-            // } else {
-            //     cout << "key " << targetKey << " not found"  << endl;
-            // }
+            if (pointLookup != "") {
+                cout << "found buffer key " << targetKey << "'s value at " << pointLookup << endl;
+            } else if (pointLookupLevel(targetKey) != "") {
+                pointLookup = pointLookupLevel(targetKey);
+                cout << "found level key " + to_string(targetKey) + "'s value at " + pointLookup  << endl;
+            } else {
+                cout << "key " << targetKey << " not found"  << endl;
+            }
             break;
         }
         case 3: {
-            // cout << "searching between range " << lowerBound << " and " << upperBound << endl;
             vector<string> rangeLookup = rangeLookupLevel(lowerBound, upperBound);
-            // if (rangeLookup.size() > 0) {
-            //     //cout << "found: " << rangeLookup.size() << " results" << endl;
-            //     for (int i=0; i< rangeLookup.size(); i++) {
-            //         cout << rangeLookup[i] << ' ';
-            //     }
-            //     cout << endl;
-            // }
-            // else {
-            //     cout << "key ranges " << lowerBound << " to "  << upperBound << " doesn't have values."  << endl;
-            // }
+            if (rangeLookup.size() > 0) {
+                //cout << "found: " << rangeLookup.size() << " results" << endl;
+                for (int i=0; i< rangeLookup.size(); i++) {
+                    cout << rangeLookup[i] << ' ';
+                }
+                cout << endl;
+            }
+            else {
+                cout << "key ranges " << lowerBound << " to "  << upperBound << " doesn't have values."  << endl;
+            }
             break;
         }
     }
@@ -251,29 +249,28 @@ void LSM::driverTiering(int operation, int key, string value, int targetKey, int
         }
         case 2: {
             string pointLookup = buffer.searchKeyInBuffer(targetKey);
-            if (pointLookup != "") {pointLookupTier(targetKey);}
-            //     cout << "found buffer key " + to_string(targetKey) + "'s value as " + pointLookup  << endl;
-            // else if (pointLookupTier(targetKey) != "") {
-            //     pointLookup = pointLookupTier(targetKey);
-            //     cout << "found level key " + to_string(targetKey) + "'s value as " + pointLookup  << endl;
-            // } else {
-            //     cout << "key " << targetKey << " not found"  << endl;
-            // }
+            if (pointLookup != "") {
+                cout << "found buffer key " + to_string(targetKey) + "'s value as " + pointLookup  << endl;
+            } else if (pointLookupTier(targetKey) != "") {
+                pointLookup = pointLookupTier(targetKey);
+                cout << "found level key " + to_string(targetKey) + "'s value as " + pointLookup  << endl;
+            } else {
+                cout << "key " << targetKey << " not found"  << endl;
+            }
             break;
         }
         case 3: {
-            //cout << "SEARCHING between range " << lowerBound << " and " << upperBound << endl;
             vector<string> rangeLookup = rangeLookupTier(lowerBound, upperBound);
-            // if (rangeLookup.size() > 0) {
-            //     cout << "found: " << rangeLookup.size() << " results." << endl;
-            //     for (int i=0; i< rangeLookup.size(); i++) {
-            //         cout << rangeLookup[i] << " ";
-            //     }
-            //     cout << endl;
-            // }
-            // else {
-            //     cout << "key not found"  << endl;
-            // }
+            if (rangeLookup.size() > 0) {
+                cout << "found: " << rangeLookup.size() << " results." << endl;
+                for (int i=0; i< rangeLookup.size(); i++) {
+                    cout << rangeLookup[i] << " ";
+                }
+                cout << endl;
+            }
+            else {
+                cout << "key not found"  << endl;
+            }
             break;
         }
     }
